@@ -1,0 +1,82 @@
+'use server';
+
+/**
+ * @fileOverview An AI agent for generating professional email content based on user input.
+ *
+ * - generateEmailContent - A function that generates email content.
+ * - GenerateEmailContentInput - The input type for the generateEmailContent function.
+ * - GenerateEmailContentOutput - The return type for the generateEmailContent function.
+ */
+
+import {ai} from '@/ai/genkit';
+import {z} from 'genkit';
+
+const GenerateEmailContentInputSchema = z.object({
+  customerName: z.string().describe('The name of the customer.'),
+  shipName: z.string().describe('The name of the ship.'),
+  cruiseDate: z.string().describe('The date of the cruise.'),
+  nights: z.number().describe('The number of nights of the cruise.'),
+  cruiseName: z.string().describe('The name of the cruise.'),
+  adults: z.number().describe('The number of adults on the cruise.'),
+  children: z.number().describe('The number of children on the cruise.'),
+  drinksPackage: z.string().describe('The type of drinks package.'),
+  experienceType: z.string().describe('The type of cruise experience.'),
+  cabinType: z.string().describe('The type of cabin.'),
+  decks: z.string().describe('The deck number or name.'),
+  mscBookPrice: z.number().describe('The MSC Book price of the cruise.'),
+  discountPercentage: z.number().describe('The discount percentage applied.'),
+  deposit: z.number().describe('The deposit amount paid.'),
+  dueDate: z.string().describe('The due date for the remaining payment.'),
+});
+export type GenerateEmailContentInput = z.infer<typeof GenerateEmailContentInputSchema>;
+
+const GenerateEmailContentOutputSchema = z.object({
+  emailContent: z.string().describe('The generated email content.'),
+});
+export type GenerateEmailContentOutput = z.infer<typeof GenerateEmailContentOutputSchema>;
+
+export async function generateEmailContent(input: GenerateEmailContentInput): Promise<GenerateEmailContentOutput> {
+  return generateEmailContentFlow(input);
+}
+
+const generateEmailContentPrompt = ai.definePrompt({
+  name: 'generateEmailContentPrompt',
+  input: {schema: GenerateEmailContentInputSchema},
+  output: {schema: GenerateEmailContentOutputSchema},
+  prompt: `You are a professional email writer for a cruise company.
+  Generate a personalized and engaging email to a customer based on the following cruise details:
+
+  Customer Name: {{{customerName}}}
+  Ship Name: {{{shipName}}}
+  Cruise Date: {{{cruiseDate}}}
+  Nights: {{{nights}}}
+  Cruise Name: {{{cruiseName}}}
+  Adults: {{{adults}}}
+  Children: {{{children}}}
+  Drinks Package: {{{drinksPackage}}}
+  Experience Type: {{{experienceType}}}
+  Cabin Type: {{{cabinType}}}
+  Decks: {{{decks}}}
+  MSCBook Price: {{{mscBookPrice}}}
+  Discount Percentage: {{{discountPercentage}}}
+  Deposit: {{{deposit}}}
+  Due Date: {{{dueDate}}}
+
+  Compose a professional and informative email that includes relevant details to excite the customer about their upcoming cruise.
+  The email should be well-formatted, address the customer by name, and include a call to action, like reminding them to make the final payment by the due date.
+  Please do not include any external links or promotional material.
+  The response should be formatted as plain text.
+  `,
+});
+
+const generateEmailContentFlow = ai.defineFlow(
+  {
+    name: 'generateEmailContentFlow',
+    inputSchema: GenerateEmailContentInputSchema,
+    outputSchema: GenerateEmailContentOutputSchema,
+  },
+  async input => {
+    const {output} = await generateEmailContentPrompt(input);
+    return output!;
+  }
+);
