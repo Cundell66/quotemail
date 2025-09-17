@@ -90,7 +90,7 @@ export default function Home() {
     if (isMounted) {
       checkAndGenerate();
     }
-  }, [debouncedValues, isMounted, toast, emailContent]);
+  }, [debouncedValues, isMounted, toast]);
 
   return (
     <div className="min-h-screen w-full bg-background">
