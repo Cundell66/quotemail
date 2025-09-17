@@ -44,7 +44,8 @@ const generateEmailContentPrompt = ai.definePrompt({
   input: {schema: GenerateEmailContentInputSchema},
   output: {schema: GenerateEmailContentOutputSchema},
   prompt: `You are a professional email writer for a cruise company.
-  Generate a personalized and engaging email to a customer based on the following cruise details:
+  Generate a personalized and engaging email to a customer based on the following cruise details.
+  The total price should be calculated as the MSC Book Price minus the discount.
 
   Customer Name: {{{customerName}}}
   Ship Name: {{{shipName}}}
@@ -62,10 +63,22 @@ const generateEmailContentPrompt = ai.definePrompt({
   Deposit: {{{deposit}}}
   Due Date: {{{dueDate}}}
 
-  Compose a professional and informative email that includes relevant details to excite the customer about their upcoming cruise.
-  The email should be well-formatted, address the customer by name, and include a call to action, like reminding them to make the final payment by the due date.
-  Please do not include any external links or promotional material.
-  The response should be formatted as plain text.
+  The email should follow this exact format, including all line breaks:
+  Hi {{{customerName}}},
+
+  Thanks for your Quote Request, I've attached some pricing and info below for you.
+
+  {{{shipName}}}
+  {{{cruiseDate}}} - {{{nights}}} Nights - {{{cruiseName}}}
+  {{{adults}}} Adults and {{{children}}} Children
+  {{{drinksPackage}}} Included
+
+  {{{experienceType}}} {{{cabinType}}} - Decks {{{decks}}}
+  My Price - £{{price}} per cabin, not per person!
+
+  Deposit for this cruise is £{{{deposit}}}pp with the remaining balance being due by {{{dueDate}}}
+
+  If you would like to go ahead and book this cruise, please let me know and I'll start searching for the perfect cabin for you.
   `,
 });
 
@@ -76,7 +89,10 @@ const generateEmailContentFlow = ai.defineFlow(
     outputSchema: GenerateEmailContentOutputSchema,
   },
   async input => {
-    const {output} = await generateEmailContentPrompt(input);
+    const price = input.mscBookPrice - (input.mscBookPrice * (input.discountPercentage / 100));
+    const {output} = await generateEmailContentPrompt({...input, price});
     return output!;
   }
 );
+
+    
