@@ -210,7 +210,7 @@ export function CruiseEmailForm({ form, onSubmit, isLoading }: CruiseEmailFormPr
             name="mscBookPrice"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>MSC Book Price ($)</FormLabel>
+                <FormLabel>MSC Book Price (£)</FormLabel>
                 <FormControl>
                   <Input type="number" placeholder="e.g., 2500" {...field} />
                 </FormControl>
@@ -236,7 +236,7 @@ export function CruiseEmailForm({ form, onSubmit, isLoading }: CruiseEmailFormPr
             name="deposit"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Deposit ($)</FormLabel>
+                <FormLabel>Deposit (£)</FormLabel>
                 <FormControl>
                   <Input type="number" placeholder="e.g., 500" {...field} />
                 </FormControl>
