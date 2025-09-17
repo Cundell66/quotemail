@@ -2,7 +2,6 @@
 
 import * as React from "react";
 import { Check, Copy, Bot } from "lucide-react";
-
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -24,6 +23,16 @@ type EmailPreviewProps = {
   emailContent: string;
   isLoading: boolean;
 };
+
+// A simple markdown-to-HTML converter
+const SimpleMarkdown: React.FC<{ text: string }> = ({ text }) => {
+  const html = text
+    .replace(/__\*\*(.*?)\*\*__/g, '<u><b>$1</b></u>') // bold and underline for price
+    .replace(/\n/g, '<br />');
+
+  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+};
+
 
 export function EmailPreview({ emailContent, isLoading }: EmailPreviewProps) {
   const [isCopied, setIsCopied] = React.useState(false);
@@ -93,10 +102,13 @@ export function EmailPreview({ emailContent, isLoading }: EmailPreviewProps) {
               <Skeleton className="h-4 w-5/6" />
             </div>
           ) : (
-            <pre className="whitespace-pre-wrap font-sans text-sm text-foreground">
-              {emailContent ||
-                "Fill out the form to see the AI-generated email..."}
-            </pre>
+            <div className="whitespace-pre-wrap font-sans text-sm text-foreground">
+              {emailContent ? (
+                <SimpleMarkdown text={emailContent} />
+              ) : (
+                "Fill out the form to see the generated email..."
+              )}
+            </div>
           )}
         </div>
       </CardContent>
