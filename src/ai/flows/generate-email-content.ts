@@ -74,7 +74,7 @@ const generateEmailContentPrompt = ai.definePrompt({
   {{{drinksPackage}}}
 
   {{{experienceType}}} {{{cabinType}}} - Decks {{{decks}}}
-  My Price - £{{price}} per cabin, not per person!
+  My Price - __**£{{price}}**__ per cabin, not per person!
 
   Deposit for this cruise is £{{{deposit}}}pp with the remaining balance being due by {{{dueDate}}}
 
