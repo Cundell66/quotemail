@@ -6,7 +6,6 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
-import { useDebounce } from "@/hooks/use-debounce";
 import { cruiseEmailSchema } from "@/lib/schemas";
 import { generateCruiseEmailAction } from "@/lib/actions";
 import { CruiseEmailForm } from "@/components/cruise-email-form";
@@ -16,12 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 export default function Home() {
   const [emailContent, setEmailContent] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
-  const [isMounted, setIsMounted] = React.useState(false);
   const { toast } = useToast();
-
-  React.useEffect(() => {
-    setIsMounted(true);
-  }, []);
 
   const form = useForm<z.infer<typeof cruiseEmailSchema>>({
     resolver: zodResolver(cruiseEmailSchema),
@@ -45,52 +39,36 @@ export default function Home() {
     },
   });
 
-  const watchedValues = form.watch();
-  const debouncedValues = useDebounce(watchedValues, 700);
-
-  React.useEffect(() => {
-    async function checkAndGenerate() {
-      const result = cruiseEmailSchema.safeParse(debouncedValues);
-      if (result.success) {
-        setIsLoading(true);
-        try {
-          const payload = {
-            ...result.data,
-            cruiseDate: format(result.data.cruiseDate, "PPP"),
-            dueDate: format(result.data.dueDate, "PPP"),
-          };
-          const response = await generateCruiseEmailAction(payload);
-          if (response.success && response.data) {
-            setEmailContent(response.data);
-          } else {
-            toast({
-              variant: "destructive",
-              title: "Generation Failed",
-              description: response.error,
-            });
-            setEmailContent("");
-          }
-        } catch (error) {
-          toast({
-            variant: "destructive",
-            title: "An Unexpected Error Occurred",
-            description: "Please try again later.",
-          });
-          setEmailContent("");
-        } finally {
-          setIsLoading(false);
-        }
+  const onSubmit = async (values: z.infer<typeof cruiseEmailSchema>) => {
+    setIsLoading(true);
+    try {
+      const payload = {
+        ...values,
+        cruiseDate: format(values.cruiseDate, "PPP"),
+        dueDate: format(values.dueDate, "PPP"),
+      };
+      const response = await generateCruiseEmailAction(payload);
+      if (response.success && response.data) {
+        setEmailContent(response.data);
       } else {
-        if (emailContent) {
-          setEmailContent("");
-        }
+        toast({
+          variant: "destructive",
+          title: "Generation Failed",
+          description: response.error,
+        });
+        setEmailContent("");
       }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "An Unexpected Error Occurred",
+        description: "Please try again later.",
+      });
+      setEmailContent("");
+    } finally {
+      setIsLoading(false);
     }
-
-    if (isMounted) {
-      checkAndGenerate();
-    }
-  }, [debouncedValues, isMounted, toast]);
+  };
 
   return (
     <div className="min-h-screen w-full bg-background">
@@ -106,7 +84,7 @@ export default function Home() {
               <CardTitle>Cruise Details</CardTitle>
             </CardHeader>
             <CardContent>
-              <CruiseEmailForm form={form} />
+              <CruiseEmailForm form={form} onSubmit={onSubmit} isLoading={isLoading} />
             </CardContent>
           </Card>
           <EmailPreview emailContent={emailContent} isLoading={isLoading} />

@@ -3,7 +3,7 @@
 import type { UseFormReturn } from "react-hook-form";
 import type { z } from "zod";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -26,12 +26,14 @@ import { cn } from "@/lib/utils";
 
 type CruiseEmailFormProps = {
   form: UseFormReturn<z.infer<typeof cruiseEmailSchema>>;
+  onSubmit: (values: z.infer<typeof cruiseEmailSchema>) => void;
+  isLoading: boolean;
 };
 
-export function CruiseEmailForm({ form }: CruiseEmailFormProps) {
+export function CruiseEmailForm({ form, onSubmit, isLoading }: CruiseEmailFormProps) {
   return (
     <Form {...form}>
-      <form className="space-y-6">
+      <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6">
           <FormField
             control={form.control}
@@ -281,6 +283,17 @@ export function CruiseEmailForm({ form }: CruiseEmailFormProps) {
             )}
           />
         </div>
+
+        <Button type="submit" className="w-full" disabled={isLoading}>
+          {isLoading ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Generating...
+            </>
+          ) : (
+            "Generate Email"
+          )}
+        </Button>
       </form>
     </Form>
   );
