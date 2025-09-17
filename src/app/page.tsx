@@ -11,6 +11,26 @@ import { generateCruiseEmailAction } from "@/lib/actions";
 import { CruiseEmailForm } from "@/components/cruise-email-form";
 import { EmailPreview } from "@/components/email-preview";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { FilePlus2 } from "lucide-react";
+
+const defaultFormValues: z.infer<typeof cruiseEmailSchema> = {
+  customerName: "John Doe",
+  shipName: "MSC Virtuosa",
+  cruiseDate: addDays(startOfToday(), 15),
+  nights: 7,
+  cruiseName: "Northern Europe",
+  adults: 2,
+  children: 0,
+  drinksPackage: true,
+  experienceType: "Bella",
+  cabinType: "Interior",
+  decks: "10-12",
+  mscBookPrice: 2500,
+  discountPercentage: 10,
+  deposit: 200, // This will be recalculated
+  dueDate: subWeeks(addDays(startOfToday(), 15), 14),
+};
 
 export default function Home() {
   const [emailContent, setEmailContent] = React.useState("");
@@ -20,26 +40,10 @@ export default function Home() {
   const form = useForm<z.infer<typeof cruiseEmailSchema>>({
     resolver: zodResolver(cruiseEmailSchema),
     mode: "onChange",
-    defaultValues: {
-      customerName: "John Doe",
-      shipName: "MSC Virtuosa",
-      cruiseDate: addDays(startOfToday(), 15),
-      nights: 7,
-      cruiseName: "Caribbean Adventure",
-      adults: 2,
-      children: 0,
-      drinksPackage: true,
-      experienceType: "Fantastica",
-      cabinType: "Balcony",
-      decks: "10-12",
-      mscBookPrice: 2500,
-      discountPercentage: 15,
-      deposit: 200, // This will be recalculated
-      dueDate: subWeeks(addDays(startOfToday(), 15), 14),
-    },
+    defaultValues: defaultFormValues,
   });
 
-  const { watch, setValue } = form;
+  const { watch, setValue, reset } = form;
   const cruiseDate = watch("cruiseDate");
   const nights = watch("nights");
   const adults = watch("adults");
@@ -110,6 +114,15 @@ export default function Home() {
     }
   };
 
+  const handleReset = () => {
+    reset(defaultFormValues);
+    setEmailContent("");
+    toast({
+      title: "Form Reset",
+      description: "The form has been reset to its default values.",
+    });
+  };
+
   return (
     <div className="min-h-screen w-full bg-background">
       <header className="p-4 border-b">
@@ -120,8 +133,12 @@ export default function Home() {
       <main className="p-4 sm:p-6 md:p-8">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start max-w-7xl mx-auto">
           <Card>
-            <CardHeader>
+            <CardHeader className="flex flex-row items-center justify-between">
               <CardTitle>Cruise Details</CardTitle>
+              <Button variant="outline" size="sm" onClick={handleReset}>
+                <FilePlus2 className="mr-2 h-4 w-4" />
+                New Email
+              </Button>
             </CardHeader>
             <CardContent>
               <CruiseEmailForm form={form} onSubmit={onSubmit} isLoading={isLoading} />

@@ -294,7 +294,7 @@ export function CruiseEmailForm({ form, onSubmit, isLoading }: CruiseEmailFormPr
             name="deposit"
             render={({ field }) => (
               <FormItem>
-                <FormLabel>Deposit (£)</FormLabel>
+                <FormLabel>Total Deposit (£)</FormLabel>
                 <FormControl>
                   <Input type="number" placeholder="e.g., 200" {...field} readOnly />
                 </FormControl>

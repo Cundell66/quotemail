@@ -24,7 +24,7 @@ ${input.drinksPackage}
 ${input.experienceType} ${input.cabinType} - Decks ${input.decks}
 My Price - __**£${formattedPrice}**__ per cabin, not per person!
 
-Deposit for this cruise is £${input.deposit.toLocaleString('en-GB')}pp with the remaining balance being due by ${input.dueDate} (14 weeks before sailing)
+Total deposit for this cruise is £${input.deposit.toLocaleString('en-GB')} with the remaining balance being due by ${input.dueDate} (14 weeks before sailing)
 
 If you would like to go ahead and book this cruise, please let me know and I'll start searching for the perfect cabin for you.
 `;
