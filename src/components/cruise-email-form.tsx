@@ -40,6 +40,9 @@ type CruiseEmailFormProps = {
 };
 
 const shipNames = ["MSC Virtuosa", "MSC Poesia", "MSC Preziosa"];
+const experienceTypes = ["Bella", "Fantastica", "Aurea", "Yacht Club"];
+const cabinTypes = ["Interior", "Ocean View", "Balcony", "Suite"];
+
 
 export function CruiseEmailForm({ form, onSubmit, isLoading }: CruiseEmailFormProps) {
   return (
@@ -205,9 +208,20 @@ export function CruiseEmailForm({ form, onSubmit, isLoading }: CruiseEmailFormPr
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Experience Type</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., Bella" {...field} />
-                </FormControl>
+                 <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select an experience" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {experienceTypes.map((exp) => (
+                      <SelectItem key={exp} value={exp}>
+                        {exp}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -218,9 +232,20 @@ export function CruiseEmailForm({ form, onSubmit, isLoading }: CruiseEmailFormPr
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Cabin Type</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., Interior" {...field} />
-                </FormControl>
+                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a cabin type" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {cabinTypes.map((cabin) => (
+                      <SelectItem key={cabin} value={cabin}>
+                        {cabin}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -271,7 +296,7 @@ export function CruiseEmailForm({ form, onSubmit, isLoading }: CruiseEmailFormPr
               <FormItem>
                 <FormLabel>Deposit (£)</FormLabel>
                 <FormControl>
-                  <Input type="number" placeholder="e.g., 500" {...field} />
+                  <Input type="number" placeholder="e.g., 200" {...field} readOnly />
                 </FormControl>
                 <FormMessage />
               </FormItem>

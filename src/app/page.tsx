@@ -29,19 +29,19 @@ export default function Home() {
       adults: 2,
       children: 0,
       drinksPackage: true,
-      experienceType: "All-Inclusive",
-      cabinType: "Balcony Suite",
+      experienceType: "Fantastica",
+      cabinType: "Balcony",
       decks: "10-12",
       mscBookPrice: 2500,
       discountPercentage: 15,
-      deposit: 500,
+      deposit: 200, // This will be recalculated
       dueDate: subWeeks(addDays(startOfToday(), 15), 14),
     },
   });
 
   const { watch, setValue } = form;
   const cruiseDate = watch("cruiseDate");
-  const drinksPackage = watch("drinksPackage");
+  const nights = watch("nights");
   const adults = watch("adults");
   const children = watch("children");
 
@@ -50,6 +50,24 @@ export default function Home() {
       setValue("dueDate", subWeeks(cruiseDate, 14));
     }
   }, [cruiseDate, setValue]);
+
+  React.useEffect(() => {
+    const numNights = Number(nights) || 0;
+    const numAdults = Number(adults) || 0;
+    const numChildren = Number(children) || 0;
+    const totalGuests = numAdults + numChildren;
+    
+    let newDeposit = 0;
+    if (totalGuests > 0) {
+      if (numNights < 10) {
+        newDeposit = totalGuests * 100;
+      } else {
+        newDeposit = totalGuests * 200;
+      }
+    }
+    setValue("deposit", newDeposit);
+
+  }, [nights, adults, children, setValue]);
 
   const onSubmit = async (values: z.infer<typeof cruiseEmailSchema>) => {
     setIsLoading(true);
