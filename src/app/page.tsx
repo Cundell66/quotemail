@@ -4,7 +4,7 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
-import { format } from "date-fns";
+import { format, addWeeks, subWeeks, startOfToday, addDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { cruiseEmailSchema } from "@/lib/schemas";
 import { generateCruiseEmailAction } from "@/lib/actions";
@@ -22,30 +22,52 @@ export default function Home() {
     mode: "onChange",
     defaultValues: {
       customerName: "John Doe",
-      shipName: "Ocean Explorer",
-      cruiseDate: new Date(),
+      shipName: "MSC Virtuosa",
+      cruiseDate: addDays(startOfToday(), 15),
       nights: 7,
       cruiseName: "Caribbean Adventure",
       adults: 2,
       children: 0,
-      drinksPackage: "Premium",
+      drinksPackage: true,
       experienceType: "All-Inclusive",
       cabinType: "Balcony Suite",
       decks: "10-12",
       mscBookPrice: 2500,
       discountPercentage: 15,
       deposit: 500,
-      dueDate: new Date(new Date().setDate(new Date().getDate() + 30)),
+      dueDate: subWeeks(addDays(startOfToday(), 15), 14),
     },
   });
+
+  const { watch, setValue } = form;
+  const cruiseDate = watch("cruiseDate");
+  const drinksPackage = watch("drinksPackage");
+  const adults = watch("adults");
+  const children = watch("children");
+
+  React.useEffect(() => {
+    if (cruiseDate) {
+      setValue("dueDate", subWeeks(cruiseDate, 14));
+    }
+  }, [cruiseDate, setValue]);
 
   const onSubmit = async (values: z.infer<typeof cruiseEmailSchema>) => {
     setIsLoading(true);
     try {
+      let drinksPackageString = "No drinks package";
+      if(values.drinksPackage) {
+        if(values.children > 0) {
+          drinksPackageString = "Premium Extra & Minors Drinks Included";
+        } else {
+          drinksPackageString = "Premium Extra Drinks Included";
+        }
+      }
+
       const payload = {
         ...values,
         cruiseDate: format(values.cruiseDate, "PPP"),
         dueDate: format(values.dueDate, "PPP"),
+        drinksPackage: drinksPackageString,
       };
       const response = await generateCruiseEmailAction(payload);
       if (response.success && response.data) {

@@ -10,6 +10,7 @@ import { Calendar } from "@/components/ui/calendar";
 import {
   Form,
   FormControl,
+  FormDescription,
   FormField,
   FormItem,
   FormLabel,
@@ -21,6 +22,14 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
 import type { cruiseEmailSchema } from "@/lib/schemas";
 import { cn } from "@/lib/utils";
 
@@ -29,6 +38,8 @@ type CruiseEmailFormProps = {
   onSubmit: (values: z.infer<typeof cruiseEmailSchema>) => void;
   isLoading: boolean;
 };
+
+const shipNames = ["MSC Virtuosa", "MSC Poesia", "MSC Preziosa"];
 
 export function CruiseEmailForm({ form, onSubmit, isLoading }: CruiseEmailFormProps) {
   return (
@@ -54,9 +65,23 @@ export function CruiseEmailForm({ form, onSubmit, isLoading }: CruiseEmailFormPr
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Ship Name</FormLabel>
-                <FormControl>
-                  <Input placeholder="e.g., MSC Fantasia" {...field} />
-                </FormControl>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a ship" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {shipNames.map((ship) => (
+                      <SelectItem key={ship} value={ship}>
+                        {ship}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <FormMessage />
               </FormItem>
             )}
@@ -157,12 +182,20 @@ export function CruiseEmailForm({ form, onSubmit, isLoading }: CruiseEmailFormPr
             control={form.control}
             name="drinksPackage"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Drinks Package</FormLabel>
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                 <FormControl>
-                  <Input placeholder="e.g., Easy Package" {...field} />
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
                 </FormControl>
-                <FormMessage />
+                <div className="space-y-1 leading-none">
+                  <FormLabel>Include Drinks Package</FormLabel>
+                  <FormDescription>
+                    Premium Extra for adults, and a minor's package if children
+                    are present.
+                  </FormDescription>
+                </div>
               </FormItem>
             )}
           />
@@ -259,11 +292,12 @@ export function CruiseEmailForm({ form, onSubmit, isLoading }: CruiseEmailFormPr
                           "w-full pl-3 text-left font-normal",
                           !field.value && "text-muted-foreground"
                         )}
+                        disabled
                       >
                         {field.value ? (
                           format(field.value, "PPP")
                         ) : (
-                          <span>Pick a date</span>
+                          <span>Pick a cruise date first</span>
                         )}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>

@@ -41,7 +41,7 @@ export async function generateEmailContent(input: GenerateEmailContentInput): Pr
 
 const generateEmailContentPrompt = ai.definePrompt({
   name: 'generateEmailContentPrompt',
-  input: {schema: GenerateEmailContentInputSchema},
+  input: {schema: GenerateEmailContentInputSchema.extend({ price: z.number() })},
   output: {schema: GenerateEmailContentOutputSchema},
   prompt: `You are a professional email writer for a cruise company.
   Generate a personalized and engaging email to a customer based on the following cruise details.
@@ -71,7 +71,7 @@ const generateEmailContentPrompt = ai.definePrompt({
   {{{shipName}}}
   {{{cruiseDate}}} - {{{nights}}} Nights - {{{cruiseName}}}
   {{{adults}}} Adults and {{{children}}} Children
-  {{{drinksPackage}}} Included
+  {{{drinksPackage}}}
 
   {{{experienceType}}} {{{cabinType}}} - Decks {{{decks}}}
   My Price - £{{price}} per cabin, not per person!
@@ -89,10 +89,9 @@ const generateEmailContentFlow = ai.defineFlow(
     outputSchema: GenerateEmailContentOutputSchema,
   },
   async input => {
-    const price = input.mscBookPrice - (input.mscBookPrice * (input.discountPercentage / 100));
+    const discountedPrice = input.mscBookPrice - (input.mscBookPrice * (input.discountPercentage / 100));
+    const price = Math.floor(discountedPrice / 10) * 10 + 9;
     const {output} = await generateEmailContentPrompt({...input, price});
     return output!;
   }
 );
-
-    
