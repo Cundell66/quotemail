@@ -2,8 +2,9 @@
 
 import type { GenerateEmailContentInput } from "@/ai/flows/generate-email-content";
 
-function generateEmailTemplate(input: GenerateEmailContentInput): string {
-  const discountedPrice = input.mscBookPrice - (input.mscBookPrice * (input.discountPercentage / 100));
+function generateEmailTemplate(input: GenerateEmailContentInput & { voyagerMember?: boolean }): string {
+  const totalDiscountPercentage = input.discountPercentage + (input.voyagerMember ? 5 : 0);
+  const discountedPrice = input.mscBookPrice - (input.mscBookPrice * (totalDiscountPercentage / 100));
   const price = Math.floor(discountedPrice / 10) * 10 + 9;
   const formattedPrice = price.toLocaleString('en-GB');
 
@@ -11,6 +12,8 @@ function generateEmailTemplate(input: GenerateEmailContentInput): string {
   if (input.children > 0) {
     guestsLine += ` and ${input.children} Children`;
   }
+
+  let voyagerLine = input.voyagerMember ? 'Voyager Club Discount added\n' : '';
 
   const emailContent = `Hi ${input.customerName},
 
@@ -20,7 +23,7 @@ ${input.shipName}
 ${input.cruiseDate} - ${input.nights} Nights - ${input.cruiseName}
 ${guestsLine}
 ${input.drinksPackage}
-
+${voyagerLine}
 ${input.experienceType} ${input.cabinType} - Decks ${input.decks}
 My Price - __**£${formattedPrice}**__ per cabin, not per person!
 
@@ -33,7 +36,7 @@ If you would like to go ahead and book this cruise, please let me know and I'll 
 }
 
 
-export async function generateCruiseEmailAction(input: GenerateEmailContentInput) {
+export async function generateCruiseEmailAction(input: GenerateEmailContentInput & { voyagerMember?: boolean }) {
   try {
     const result = generateEmailTemplate(input);
     return { success: true, data: result };

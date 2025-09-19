@@ -27,9 +27,10 @@ const defaultFormValues: z.infer<typeof cruiseEmailSchema> = {
   cabinType: [],
   decks: "",
   mscBookPrice: 0,
-  discountPercentage: 10,
+  discountPercentage: 8.5,
   deposit: 0, // This will be recalculated
   dueDate: subWeeks(addDays(startOfToday(), 15), 14),
+  voyagerMember: false,
 };
 
 export default function Home() {

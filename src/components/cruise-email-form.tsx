@@ -201,7 +201,26 @@ export function CruiseEmailForm({ form, onSubmit, isLoading }: CruiseEmailFormPr
               </FormItem>
             )}
           />
-          <div></div>
+          <FormField
+            control={form.control}
+            name="voyagerMember"
+            render={({ field }) => (
+              <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
+                <FormControl>
+                  <Checkbox
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                </FormControl>
+                <div className="space-y-1 leading-none">
+                  <FormLabel>Voyager Member</FormLabel>
+                  <FormDescription>
+                    Applies an additional 5% discount.
+                  </FormDescription>
+                </div>
+              </FormItem>
+            )}
+          />
           <FormField
             control={form.control}
             name="experienceType"

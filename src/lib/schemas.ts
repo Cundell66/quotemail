@@ -21,4 +21,5 @@ export const cruiseEmailSchema = z.object({
   discountPercentage: z.coerce.number({invalid_type_error: "Must be a number."}).min(0, "Cannot be negative.").max(100, "Cannot exceed 100."),
   deposit: z.coerce.number({invalid_type_error: "Must be a number."}).positive("Deposit must be positive."),
   dueDate: z.date({ required_error: "A due date is required." }),
+  voyagerMember: z.boolean(),
 });
