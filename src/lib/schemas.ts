@@ -8,6 +8,7 @@ const cruiseOptionSchema = z.object({
   mscBookPrice: z.coerce.number({invalid_type_error: "Must be a number."}).positive("Price must be positive."),
 });
 
+// This schema is used for client-side form validation
 export const cruiseEmailSchema = z.object({
   customerName: z.string().min(1, { message: "Customer name is required." }),
   shipName: z.string().min(1, { message: "Ship name is required." }),
@@ -23,3 +24,31 @@ export const cruiseEmailSchema = z.object({
   dueDate: z.date({ required_error: "A due date is required." }),
   voyagerMember: z.boolean(),
 });
+
+// This schema is for the Genkit flow input
+const GenkitCruiseOptionSchema = z.object({
+    experienceType: z.string(),
+    cabinType: z.string(),
+    decks: z.string(),
+    mscBookPrice: z.number(),
+});
+
+export const GenerateEmailContentInputSchema = z.object({
+  customerName: z.string().describe('The name of the customer.'),
+  shipName: z.string().describe('The name of the ship.'),
+  cruiseDate: z.string().describe('The date of the cruise.'),
+  nights: z.number().describe('The number of nights of the cruise.'),
+  cruiseName: z.string().describe('The name of the cruise.'),
+  adults: z.number().describe('The number of adults on the cruise.'),
+  children: z.number().describe('The number of children on the cruise.'),
+  drinksPackage: z.string().describe('The type of drinks package.'),
+  options: z.array(GenkitCruiseOptionSchema).describe('The different cruise options available.'),
+  discountPercentage: z.number().describe('The discount percentage applied.'),
+  deposit: z.number().describe('The deposit amount paid.'),
+  dueDate: z.string().describe('The due date for the remaining payment.'),
+  voyagerMember: z.boolean().optional().describe('Whether the customer is a Voyager Member.'),
+});
+export type GenerateEmailContentInput = z.infer<typeof GenerateEmailContentInputSchema>;
+
+export const GenerateEmailContentOutputSchema = z.string();
+export type GenerateEmailContentOutput = z.infer<typeof GenerateEmailContentOutputSchema>;

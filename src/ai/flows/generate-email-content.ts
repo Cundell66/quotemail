@@ -8,23 +8,56 @@
  * - GenerateEmailContentOutput - The return type for the generateEmailContent function.
  */
 
-import {z} from 'genkit';
+import {ai} from '@/ai/genkit';
+import { GenerateEmailContentInputSchema, GenerateEmailContentOutputSchema, type GenerateEmailContentInput, type GenerateEmailContentOutput } from "@/lib/schemas";
 
-export const GenerateEmailContentInputSchema = z.object({
-  customerName: z.string().describe('The name of the customer.'),
-  shipName: z.string().describe('The name of the ship.'),
-  cruiseDate: z.string().describe('The date of the cruise.'),
-  nights: z.number().describe('The number of nights of the cruise.'),
-  cruiseName: z.string().describe('The name of the cruise.'),
-  adults: z.number().describe('The number of adults on the cruise.'),
-  children: z.number().describe('The number of children on the cruise.'),
-  drinksPackage: z.string().describe('The type of drinks package.'),
-  experienceType: z.string().describe('The type of cruise experience.'),
-  cabinType: z.string().describe('The type of cabin.'),
-  decks: z.string().describe('The deck number or name.'),
-  mscBookPrice: z.number().describe('The MSC Book price of the cruise.'),
-  discountPercentage: z.number().describe('The discount percentage applied.'),
-  deposit: z.number().describe('The deposit amount paid.'),
-  dueDate: z.string().describe('The due date for the remaining payment.'),
-});
-export type GenerateEmailContentInput = z.infer<typeof GenerateEmailContentInputSchema>;
+
+function generateEmailTemplate(input: GenerateEmailContentInput): string {
+  let guestsLine = `${input.adults} Adults`;
+  if (input.children > 0) {
+    guestsLine += ` and ${input.children} Children`;
+  }
+
+  const optionsText = input.options.map(option => {
+    const discountedPrice = option.mscBookPrice - (option.mscBookPrice * (input.discountPercentage / 100));
+    const price = Math.floor(discountedPrice / 10) * 10 + 9;
+    const formattedPrice = price.toLocaleString('en-GB');
+    
+    return `${option.experienceType} ${option.cabinType} - Decks ${option.decks}\nMy Price - __**£${formattedPrice}**__ per cabin, not per person!`;
+  }).join('\n\n');
+
+  let voyagerLine = input.voyagerMember ? 'Voyager Club Discount included\n' : '';
+
+  const emailContent = `Hi ${input.customerName},
+
+Thanks for your Quote Request, I've attached some pricing and info below for you.
+
+${input.shipName}
+${input.cruiseDate} - ${input.nights} Nights - ${input.cruiseName}
+${guestsLine}
+${input.drinksPackage}
+${voyagerLine}
+${optionsText}
+
+Total deposit for this cruise is £${input.deposit.toLocaleString('en-GB')} with the remaining balance being due by ${input.dueDate} (14 weeks before sailing)
+
+If you would like to go ahead and book this cruise, please let me know and I'll start searching for the perfect cabin for you.
+`;
+
+  return emailContent;
+}
+
+const generateEmailContentFlow = ai.defineFlow(
+  {
+    name: 'generateEmailContentFlow',
+    inputSchema: GenerateEmailContentInputSchema,
+    outputSchema: GenerateEmailContentOutputSchema,
+  },
+  async (input) => {
+    return generateEmailTemplate(input);
+  }
+);
+
+export async function generateEmailContent(input: GenerateEmailContentInput): Promise<GenerateEmailContentOutput> {
+    return await generateEmailContentFlow(input);
+}
