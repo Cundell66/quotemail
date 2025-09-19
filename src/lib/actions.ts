@@ -1,19 +1,43 @@
 "use server";
 
-import type { GenerateEmailContentInput } from "@/ai/flows/generate-email-content";
+type CruiseOption = {
+    experienceType: string;
+    cabinType: string;
+    decks: string;
+    mscBookPrice: number;
+};
 
-function generateEmailTemplate(input: GenerateEmailContentInput & { voyagerMember?: boolean }): string {
-  const totalDiscountPercentage = input.discountPercentage + (input.voyagerMember ? 5 : 0);
-  const discountedPrice = input.mscBookPrice - (input.mscBookPrice * (totalDiscountPercentage / 100));
-  const price = Math.floor(discountedPrice / 10) * 10 + 9;
-  const formattedPrice = price.toLocaleString('en-GB');
+type GenerateEmailTemplateInput = {
+    customerName: string;
+    shipName: string;
+    cruiseDate: string;
+    nights: number;
+    cruiseName: string;
+    adults: number;
+    children: number;
+    drinksPackage: string;
+    voyagerMember?: boolean;
+    options: CruiseOption[];
+    discountPercentage: number;
+    deposit: number;
+    dueDate: string;
+};
 
+function generateEmailTemplate(input: GenerateEmailTemplateInput): string {
   let guestsLine = `${input.adults} Adults`;
   if (input.children > 0) {
     guestsLine += ` and ${input.children} Children`;
   }
 
-  let voyagerLine = input.voyagerMember ? 'Voyager Club Discount added\n' : '';
+  const optionsText = input.options.map(option => {
+    const discountedPrice = option.mscBookPrice - (option.mscBookPrice * (input.discountPercentage / 100));
+    const price = Math.floor(discountedPrice / 10) * 10 + 9;
+    const formattedPrice = price.toLocaleString('en-GB');
+    
+    return `${option.experienceType} ${option.cabinType} - Decks ${option.decks}\nMy Price - __**£${formattedPrice}**__ per cabin, not per person!`;
+  }).join('\n\n');
+
+  let voyagerLine = input.voyagerMember ? 'Voyager Club Discount included\n' : '';
 
   const emailContent = `Hi ${input.customerName},
 
@@ -24,8 +48,7 @@ ${input.cruiseDate} - ${input.nights} Nights - ${input.cruiseName}
 ${guestsLine}
 ${input.drinksPackage}
 ${voyagerLine}
-${input.experienceType} ${input.cabinType} - Decks ${input.decks}
-My Price - __**£${formattedPrice}**__ per cabin, not per person!
+${optionsText}
 
 Total deposit for this cruise is £${input.deposit.toLocaleString('en-GB')} with the remaining balance being due by ${input.dueDate} (14 weeks before sailing)
 
@@ -36,7 +59,7 @@ If you would like to go ahead and book this cruise, please let me know and I'll 
 }
 
 
-export async function generateCruiseEmailAction(input: GenerateEmailContentInput & { voyagerMember?: boolean }) {
+export async function generateCruiseEmailAction(input: GenerateEmailTemplateInput) {
   try {
     const result = generateEmailTemplate(input);
     return { success: true, data: result };

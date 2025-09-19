@@ -4,7 +4,7 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
-import { format, addWeeks, subWeeks, startOfToday, addDays } from "date-fns";
+import { format, subWeeks, startOfToday, addDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { cruiseEmailSchema } from "@/lib/schemas";
 import { generateCruiseEmailAction } from "@/lib/actions";
@@ -23,12 +23,9 @@ const defaultFormValues: z.infer<typeof cruiseEmailSchema> = {
   adults: 2,
   children: 0,
   drinksPackage: false,
-  experienceType: [],
-  cabinType: [],
-  decks: "",
-  mscBookPrice: 0,
+  options: [{ experienceType: "", cabinType: "", decks: "", mscBookPrice: 0 }],
   discountPercentage: 8.5,
-  deposit: 0, // This will be recalculated
+  deposit: 0,
   dueDate: subWeeks(addDays(startOfToday(), 15), 14),
   voyagerMember: false,
 };
@@ -91,8 +88,6 @@ export default function Home() {
         cruiseDate: format(values.cruiseDate, "PPP"),
         dueDate: format(values.dueDate, "PPP"),
         drinksPackage: drinksPackageString,
-        experienceType: values.experienceType.join(', '),
-        cabinType: values.cabinType.join(', '),
       };
       const response = await generateCruiseEmailAction(payload);
       if (response.success && response.data) {
