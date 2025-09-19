@@ -43,7 +43,6 @@ const shipNames = ["MSC Virtuosa", "MSC Poesia", "MSC Preziosa"];
 const experienceTypes = ["Bella", "Fantastica", "Aurea", "Yacht Club"];
 const cabinTypes = ["Interior", "Ocean View", "Balcony", "Suite"];
 
-
 export function CruiseEmailForm({ form, onSubmit, isLoading }: CruiseEmailFormProps) {
   return (
     <Form {...form}>
@@ -202,26 +201,51 @@ export function CruiseEmailForm({ form, onSubmit, isLoading }: CruiseEmailFormPr
               </FormItem>
             )}
           />
+          <div></div>
           <FormField
             control={form.control}
             name="experienceType"
-            render={({ field }) => (
+            render={() => (
               <FormItem>
-                <FormLabel>Experience Type</FormLabel>
-                 <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select an experience" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {experienceTypes.map((exp) => (
-                      <SelectItem key={exp} value={exp}>
-                        {exp}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <div className="mb-4">
+                  <FormLabel className="text-base">Experience Type</FormLabel>
+                  <FormDescription>
+                    Select one or more experience types.
+                  </FormDescription>
+                </div>
+                {experienceTypes.map((item) => (
+                  <FormField
+                    key={item}
+                    control={form.control}
+                    name="experienceType"
+                    render={({ field }) => {
+                      return (
+                        <FormItem
+                          key={item}
+                          className="flex flex-row items-start space-x-3 space-y-0"
+                        >
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value?.includes(item)}
+                              onCheckedChange={(checked) => {
+                                return checked
+                                  ? field.onChange([...field.value, item])
+                                  : field.onChange(
+                                      field.value?.filter(
+                                        (value) => value !== item
+                                      )
+                                    );
+                              }}
+                            />
+                          </FormControl>
+                          <FormLabel className="font-normal">
+                            {item}
+                          </FormLabel>
+                        </FormItem>
+                      );
+                    }}
+                  />
+                ))}
                 <FormMessage />
               </FormItem>
             )}
@@ -230,22 +254,46 @@ export function CruiseEmailForm({ form, onSubmit, isLoading }: CruiseEmailFormPr
             control={form.control}
             name="cabinType"
             render={({ field }) => (
-              <FormItem>
-                <FormLabel>Cabin Type</FormLabel>
-                <Select onValueChange={field.onChange} defaultValue={field.value}>
-                  <FormControl>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a cabin type" />
-                    </SelectTrigger>
-                  </FormControl>
-                  <SelectContent>
-                    {cabinTypes.map((cabin) => (
-                      <SelectItem key={cabin} value={cabin}>
-                        {cabin}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+               <FormItem>
+                <div className="mb-4">
+                  <FormLabel className="text-base">Cabin Type</FormLabel>
+                  <FormDescription>
+                    Select one or more cabin types.
+                  </FormDescription>
+                </div>
+                {cabinTypes.map((item) => (
+                  <FormField
+                    key={item}
+                    control={form.control}
+                    name="cabinType"
+                    render={({ field }) => {
+                      return (
+                        <FormItem
+                          key={item}
+                          className="flex flex-row items-start space-x-3 space-y-0"
+                        >
+                          <FormControl>
+                            <Checkbox
+                              checked={field.value?.includes(item)}
+                              onCheckedChange={(checked) => {
+                                return checked
+                                  ? field.onChange([...field.value, item])
+                                  : field.onChange(
+                                      field.value?.filter(
+                                        (value) => value !== item
+                                      )
+                                    );
+                              }}
+                            />
+                          </FormControl>
+                          <FormLabel className="font-normal">
+                            {item}
+                          </FormLabel>
+                        </FormItem>
+                      );
+                    }}
+                  />
+                ))}
                 <FormMessage />
               </FormItem>
             )}

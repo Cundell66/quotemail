@@ -10,8 +10,12 @@ export const cruiseEmailSchema = z.object({
   adults: z.coerce.number({invalid_type_error: "Must be a number."}).int().min(1, "At least one adult is required."),
   children: z.coerce.number({invalid_type_error: "Must be a number."}).int().min(0, "Cannot be negative."),
   drinksPackage: z.boolean(),
-  experienceType: z.string().min(1, { message: "Experience type is required." }),
-  cabinType: z.string().min(1, { message: "Cabin type is required." }),
+  experienceType: z.array(z.string()).refine((value) => value.some((item) => item), {
+    message: "You have to select at least one experience type.",
+  }),
+  cabinType: z.array(z.string()).refine((value) => value.some((item) => item), {
+    message: "You have to select at least one cabin type.",
+  }),
   decks: z.string().min(1, { message: "Decks information is required." }),
   mscBookPrice: z.coerce.number({invalid_type_error: "Must be a number."}).positive("Price must be positive."),
   discountPercentage: z.coerce.number({invalid_type_error: "Must be a number."}).min(0, "Cannot be negative.").max(100, "Cannot exceed 100."),

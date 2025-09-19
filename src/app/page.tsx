@@ -15,20 +15,20 @@ import { Button } from "@/components/ui/button";
 import { FilePlus2 } from "lucide-react";
 
 const defaultFormValues: z.infer<typeof cruiseEmailSchema> = {
-  customerName: "John Doe",
-  shipName: "MSC Virtuosa",
-  cruiseDate: addDays(startOfToday(), 15),
-  nights: 7,
-  cruiseName: "Northern Europe",
+  customerName: "",
+  shipName: "",
+  cruiseDate: addDays(startOfToday(), 30),
+  nights: 0,
+  cruiseName: "",
   adults: 2,
   children: 0,
-  drinksPackage: true,
-  experienceType: "Bella",
-  cabinType: "Interior",
-  decks: "10-12",
-  mscBookPrice: 2500,
+  drinksPackage: false,
+  experienceType: [],
+  cabinType: [],
+  decks: "",
+  mscBookPrice: 0,
   discountPercentage: 10,
-  deposit: 200, // This will be recalculated
+  deposit: 0, // This will be recalculated
   dueDate: subWeeks(addDays(startOfToday(), 15), 14),
 };
 
@@ -90,6 +90,8 @@ export default function Home() {
         cruiseDate: format(values.cruiseDate, "PPP"),
         dueDate: format(values.dueDate, "PPP"),
         drinksPackage: drinksPackageString,
+        experienceType: values.experienceType.join(', '),
+        cabinType: values.cabinType.join(', '),
       };
       const response = await generateCruiseEmailAction(payload);
       if (response.success && response.data) {
