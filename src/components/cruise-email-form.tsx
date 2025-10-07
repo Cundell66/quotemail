@@ -243,199 +243,199 @@ function CruiseSailingForm({ form, sailingIndex }: { form: UseFormReturn<z.infer
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6">
-          <FormField
-              control={form.control}
-              name={`sailings.${sailingIndex}.shipName`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Ship Name</FormLabel>
-                  <Select
-                    onValueChange={field.onChange}
-                    defaultValue={field.value}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select a ship" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {shipNames.map((ship) => (
-                        <SelectItem key={ship} value={ship}>
-                          {ship}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name={`sailings.${sailingIndex}.cruiseDate`}
-              render={({ field }) => (
-                <FormItem className="flex flex-col">
-                  <FormLabel>Cruise Date</FormLabel>
-                  <Popover>
-                    <PopoverTrigger asChild>
-                      <FormControl>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full pl-3 text-left font-normal",
-                            !field.value && "text-muted-foreground"
-                          )}
-                        >
-                          {field.value ? (
-                            format(field.value, "PPP")
-                          ) : (
-                            <span>Pick a date</span>
-                          )}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                        </Button>
-                      </FormControl>
-                    </PopoverTrigger>
-                    <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar
-                        mode="single"
-                        selected={field.value}
-                        onSelect={field.onChange}
-                        initialFocus
-                      />
-                    </PopoverContent>
-                  </Popover>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+        <FormField
+            control={form.control}
+            name={`sailings.${sailingIndex}.shipName`}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Ship Name</FormLabel>
+                <Select
+                  onValueChange={field.onChange}
+                  defaultValue={field.value}
+                >
+                  <FormControl>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a ship" />
+                    </SelectTrigger>
+                  </FormControl>
+                  <SelectContent>
+                    {shipNames.map((ship) => (
+                      <SelectItem key={ship} value={ship}>
+                        {ship}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
             <FormField
-              control={form.control}
-              name={`sailings.${sailingIndex}.nights`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nights</FormLabel>
-                  <FormControl>
-                    <Input type="number" placeholder="e.g., 7" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-             <FormField
-              control={form.control}
-              name={`sailings.${sailingIndex}.cruiseName`}
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Cruise Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., Western Mediterranean" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-      </div>
-      <Separator/>
-       <div className="space-y-4">
-            <div className="flex justify-between items-center">
-                 <FormLabel>Pricing Options</FormLabel>
-                 <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => appendOption({ experienceType: "", cabinType: "", decks: "", mscBookPrice: 0 })}
-                    >
-                    <PlusCircle className="mr-2 h-4 w-4" />
-                    Add Option
-                </Button>
-            </div>
-            {optionFields.map((option, optionIndex) => (
-              <div key={option.id} className="relative space-y-4 rounded-md border p-4">
-                 {optionIndex > 0 && (
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute -top-3 -right-3 h-7 w-7 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90"
-                    onClick={() => removeOption(optionIndex)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                )}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6">
-                  <FormField
-                    control={form.control}
-                    name={`sailings.${sailingIndex}.options.${optionIndex}.experienceType`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Experience Type</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select an experience" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent>
-                            {experienceTypes.map((type) => (
-                              <SelectItem key={type} value={type}>{type}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                   <FormField
-                    control={form.control}
-                    name={`sailings.${sailingIndex}.options.${optionIndex}.cabinType`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Cabin Type</FormLabel>                        <Select onValueChange={field.onChange} defaultValue={field.value}>
-                          <FormControl>
-                            <SelectTrigger>
-                              <SelectValue placeholder="Select a cabin type" />
-                            </Trigger>
-                          </FormControl>
-                          <SelectContent>
-                            {cabinTypes.map((type) => (
-                              <SelectItem key={type} value={type}>{type}</SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`sailings.${sailingIndex}.options.${optionIndex}.decks`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Decks</FormLabel>
-                        <FormControl>
-                          <Input placeholder="e.g., 5-11" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name={`sailings.${sailingIndex}.options.${optionIndex}.mscBookPrice`}
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>MSC Book Price (£)</FormLabel>
-                        <FormControl>
-                          <Input type="number" placeholder="e.g., 2500" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
+            control={form.control}
+            name={`sailings.${sailingIndex}.cruiseDate`}
+            render={({ field }) => (
+              <FormItem className="flex flex-col">
+                <FormLabel>Cruise Date</FormLabel>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <FormControl>
+                      <Button
+                        variant={"outline"}
+                        className={cn(
+                          "w-full pl-3 text-left font-normal",
+                          !field.value && "text-muted-foreground"
+                        )}
+                      >
+                        {field.value ? (
+                          format(field.value, "PPP")
+                        ) : (
+                          <span>Pick a date</span>
+                        )}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </FormControl>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={field.value}
+                      onSelect={field.onChange}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name={`sailings.${sailingIndex}.nights`}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Nights</FormLabel>
+                <FormControl>
+                  <Input type="number" placeholder="e.g., 7" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+            <FormField
+            control={form.control}
+            name={`sailings.${sailingIndex}.cruiseName`}
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Cruise Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="e.g., Western Mediterranean" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
     </div>
+    <Separator/>
+      <div className="space-y-4">
+          <div className="flex justify-between items-center">
+                <FormLabel>Pricing Options</FormLabel>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => appendOption({ experienceType: "", cabinType: "", decks: "", mscBookPrice: 0 })}
+                  >
+                  <PlusCircle className="mr-2 h-4 w-4" />
+                  Add Option
+              </Button>
+          </div>
+          {optionFields.map((option, optionIndex) => (
+            <div key={option.id} className="relative space-y-4 rounded-md border p-4">
+                {optionIndex > 0 && (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute -top-3 -right-3 h-7 w-7 rounded-full bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                  onClick={() => removeOption(optionIndex)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6">
+                <FormField
+                  control={form.control}
+                  name={`sailings.${sailingIndex}.options.${optionIndex}.experienceType`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Experience Type</FormLabel>
+                      <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select an experience" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {experienceTypes.map((type) => (
+                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                  <FormField
+                  control={form.control}
+                  name={`sailings.${sailingIndex}.options.${optionIndex}.cabinType`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Cabin Type</FormLabel>                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select a cabin type" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {cabinTypes.map((type) => (
+                            <SelectItem key={type} value={type}>{type}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`sailings.${sailingIndex}.options.${optionIndex}.decks`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Decks</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., 5-11" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name={`sailings.${sailingIndex}.options.${optionIndex}.mscBookPrice`}
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>MSC Book Price (£)</FormLabel>
+                      <FormControl>
+                        <Input type="number" placeholder="e.g., 2500" {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+            </div>
+          ))}
+        </div>
+  </div>
   );
 }
