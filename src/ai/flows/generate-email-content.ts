@@ -28,7 +28,6 @@ function generateEmailTemplate(input: GenerateEmailContentInput): string {
         const discountedPrice = option.mscBookPrice - (option.mscBookPrice * (input.discountPercentage / 100));
         const price = Math.floor(discountedPrice / 10) * 10 + 9;
         const formattedPrice = price.toLocaleString('en-GB');
-
         const balance = price - input.deposit;
         
         let monthlyPaymentText = '';
@@ -36,17 +35,19 @@ function generateEmailTemplate(input: GenerateEmailContentInput): string {
           const monthsBetween = differenceInMonths(paymentCutoffDate, paymentStartDate);
           if (monthsBetween > 0 && balance > 0) {
             const monthlyPayment = Math.ceil(balance / monthsBetween);
-            monthlyPaymentText = ` or ${monthsBetween} monthly payments of £${monthlyPayment.toLocaleString('en-GB')} per month via direct debit`;
+            monthlyPaymentText = `${monthsBetween} monthly payments of £${monthlyPayment.toLocaleString('en-GB')} per month by direct debit`;
           }
         }
         
         const optionDetails = `${option.experienceType} ${option.cabinType} - Decks ${option.decks}\nMy Price - __**£${formattedPrice}**__ per cabin, not per person!`;
-        const paymentDetails = `Total deposit for this cruise is £${input.deposit.toLocaleString('en-GB')} with the remaining balance being due by ${sailing.dueDate}${monthlyPaymentText}`;
+        const paymentDetails = monthlyPaymentText ? `\n${monthlyPaymentText}`: '';
 
-        return `${optionDetails}\n${paymentDetails}`;
+        return `${optionDetails}${paymentDetails}`;
       }).join('\n\n');
+
+      const sailingFooter = `Total deposit for this cruise is £${input.deposit.toLocaleString('en-GB')} with the remaining balance being due by ${sailing.dueDate}`;
       
-      return `${sailing.shipName}\n${sailing.cruiseDate} - ${sailing.nights} Nights - ${sailing.cruiseName}\n\n${optionsText}`;
+      return `${sailing.shipName}\n${sailing.cruiseDate} - ${sailing.nights} Nights - ${sailing.cruiseName}\n\n${optionsText}\n\n${sailingFooter}`;
   }).join('\n\n----------------------------------------\n\n');
 
 
