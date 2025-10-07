@@ -437,5 +437,5 @@ function CruiseSailingForm({ form, sailingIndex }: { form: UseFormReturn<z.infer
             ))}
           </div>
     </div>
-  )
+  );
 }
