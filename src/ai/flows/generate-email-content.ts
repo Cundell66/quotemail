@@ -10,6 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import { GenerateEmailContentInputSchema, GenerateEmailContentOutputSchema, type GenerateEmailContentInput, type GenerateEmailContentOutput } from "@/lib/schemas";
+import { addDays, differenceInMonths, startOfToday, subWeeks, parse } from 'date-fns';
 
 
 function generateEmailTemplate(input: GenerateEmailContentInput): string {
@@ -26,8 +27,23 @@ function generateEmailTemplate(input: GenerateEmailContentInput): string {
         
         return `${option.experienceType} ${option.cabinType} - Decks ${option.decks}\nMy Price - __**£${formattedPrice}**__ per cabin, not per person!`;
       }).join('\n\n');
+      
+      const cruiseDateObj = parse(sailing.cruiseDate, "PPP", new Date());
+      const paymentStartDate = addDays(startOfToday(), 14);
+      const paymentCutoffDate = subWeeks(cruiseDateObj, 6);
 
-      return `${sailing.shipName}\n${sailing.cruiseDate} - ${sailing.nights} Nights - ${sailing.cruiseName}\n\n${optionsText}\n\nTotal deposit for this cruise is £${input.deposit.toLocaleString('en-GB')} with the remaining balance being due by ${sailing.dueDate} (14 weeks before sailing)`;
+      const balance = (sailing.options.reduce((acc, opt) => acc + (opt.mscBookPrice - (opt.mscBookPrice * (input.discountPercentage / 100))), 0)) - input.deposit;
+      
+      let monthlyPaymentText = '';
+      if (paymentCutoffDate > paymentStartDate) {
+        const monthsBetween = differenceInMonths(paymentCutoffDate, paymentStartDate);
+        if (monthsBetween > 0 && balance > 0) {
+          const monthlyPayment = Math.ceil(balance / monthsBetween);
+          monthlyPaymentText = ` or ${monthsBetween} monthly payments of £${monthlyPayment.toLocaleString('en-GB')} per month via direct debit`;
+        }
+      }
+
+      return `${sailing.shipName}\n${sailing.cruiseDate} - ${sailing.nights} Nights - ${sailing.cruiseName}\n\n${optionsText}\n\nTotal deposit for this cruise is £${input.deposit.toLocaleString('en-GB')} with the remaining balance being due by ${sailing.dueDate} (14 weeks before sailing)${monthlyPaymentText}`;
   }).join('\n\n----------------------------------------\n\n');
 
 
@@ -43,6 +59,8 @@ ${voyagerLine}
 ${sailingsText}
 
 If you would like to go ahead and book this cruise, please let me know and I'll start searching for the perfect cabin for you.
+
+*Monthly payment amounts are estimates based on assumed information. Full breakdown available on request.*
 `;
 
   return emailContent;
