@@ -20,30 +20,33 @@ function generateEmailTemplate(input: GenerateEmailContentInput): string {
   }
 
   const sailingsText = input.sailings.map(sailing => {
-      const optionsText = sailing.options.map(option => {
-        const discountedPrice = option.mscBookPrice - (option.mscBookPrice * (input.discountPercentage / 100));
-        const price = Math.floor(discountedPrice / 10) * 10 + 9;
-        const formattedPrice = price.toLocaleString('en-GB');
-        
-        return `${option.experienceType} ${option.cabinType} - Decks ${option.decks}\nMy Price - __**£${formattedPrice}**__ per cabin, not per person!`;
-      }).join('\n\n');
-      
       const cruiseDateObj = parse(sailing.cruiseDate, "PPP", new Date());
       const paymentStartDate = addDays(startOfToday(), 14);
       const paymentCutoffDate = subWeeks(cruiseDateObj, 6);
 
-      const balance = (sailing.options.reduce((acc, opt) => acc + (opt.mscBookPrice - (opt.mscBookPrice * (input.discountPercentage / 100))), 0)) - input.deposit;
-      
-      let monthlyPaymentText = '';
-      if (paymentCutoffDate > paymentStartDate) {
-        const monthsBetween = differenceInMonths(paymentCutoffDate, paymentStartDate);
-        if (monthsBetween > 0 && balance > 0) {
-          const monthlyPayment = Math.ceil(balance / monthsBetween);
-          monthlyPaymentText = ` or ${monthsBetween} monthly payments of £${monthlyPayment.toLocaleString('en-GB')} per month via direct debit`;
-        }
-      }
+      const optionsText = sailing.options.map(option => {
+        const discountedPrice = option.mscBookPrice - (option.mscBookPrice * (input.discountPercentage / 100));
+        const price = Math.floor(discountedPrice / 10) * 10 + 9;
+        const formattedPrice = price.toLocaleString('en-GB');
 
-      return `${sailing.shipName}\n${sailing.cruiseDate} - ${sailing.nights} Nights - ${sailing.cruiseName}\n\n${optionsText}\n\nTotal deposit for this cruise is £${input.deposit.toLocaleString('en-GB')} with the remaining balance being due by ${sailing.dueDate} (14 weeks before sailing)${monthlyPaymentText}`;
+        const balance = price - input.deposit;
+        
+        let monthlyPaymentText = '';
+        if (paymentCutoffDate > paymentStartDate) {
+          const monthsBetween = differenceInMonths(paymentCutoffDate, paymentStartDate);
+          if (monthsBetween > 0 && balance > 0) {
+            const monthlyPayment = Math.ceil(balance / monthsBetween);
+            monthlyPaymentText = ` or ${monthsBetween} monthly payments of £${monthlyPayment.toLocaleString('en-GB')} per month via direct debit`;
+          }
+        }
+        
+        const optionDetails = `${option.experienceType} ${option.cabinType} - Decks ${option.decks}\nMy Price - __**£${formattedPrice}**__ per cabin, not per person!`;
+        const paymentDetails = `Total deposit for this cruise is £${input.deposit.toLocaleString('en-GB')} with the remaining balance being due by ${sailing.dueDate}${monthlyPaymentText}`;
+
+        return `${optionDetails}\n${paymentDetails}`;
+      }).join('\n\n');
+      
+      return `${sailing.shipName}\n${sailing.cruiseDate} - ${sailing.nights} Nights - ${sailing.cruiseName}\n\n${optionsText}`;
   }).join('\n\n----------------------------------------\n\n');
 
 
