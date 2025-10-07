@@ -14,20 +14,24 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FilePlus2 } from "lucide-react";
 
-const defaultFormValues: z.infer<typeof cruiseEmailSchema> = {
-  customerName: "",
+const defaultSailingValue = {
   shipName: "",
   cruiseDate: addDays(startOfToday(), 30),
   nights: 0,
   cruiseName: "",
+  options: [{ experienceType: "", cabinType: "", decks: "", mscBookPrice: 0 }],
+};
+
+const defaultFormValues: z.infer<typeof cruiseEmailSchema> = {
+  customerName: "",
   adults: 2,
   children: 0,
   drinksPackage: false,
-  options: [{ experienceType: "", cabinType: "", decks: "", mscBookPrice: 0 }],
   discountPercentage: 8.5,
   deposit: 0,
   dueDate: subWeeks(addDays(startOfToday(), 15), 14),
   voyagerMember: false,
+  sailings: [defaultSailingValue],
 };
 
 export default function Home() {
@@ -41,27 +45,33 @@ export default function Home() {
     defaultValues: defaultFormValues,
   });
 
-  const { watch, setValue, reset } = form;
-  const cruiseDate = watch("cruiseDate");
-  const nights = watch("nights");
+  const { watch, setValue, reset, control } = form;
   const adults = watch("adults");
   const children = watch("children");
+  const sailings = watch("sailings");
+
 
   React.useEffect(() => {
-    if (cruiseDate) {
-      setValue("dueDate", subWeeks(cruiseDate, 14));
+    // This effect handles setting the due date for each sailing.
+    // It seems the original logic only set one due date.
+    // Let's assume for now the LATEST cruise date determines the single due date for the whole quote.
+    if (sailings && sailings.length > 0) {
+      const latestDate = sailings.reduce((max, s) => s.cruiseDate > max ? s.cruiseDate : max, sailings[0].cruiseDate);
+      setValue("dueDate", subWeeks(latestDate, 14));
     }
-  }, [cruiseDate, setValue]);
+  }, [sailings, setValue]);
 
   React.useEffect(() => {
-    const numNights = Number(nights) || 0;
     const numAdults = Number(adults) || 0;
     const numChildren = Number(children) || 0;
     const totalGuests = numAdults + numChildren;
     
+    // Deposit is now calculated based on the sailing with the most nights.
+    const maxNights = sailings?.reduce((max, s) => Math.max(max, s.nights), 0) || 0;
+
     let newDeposit = 0;
     if (totalGuests > 0) {
-      if (numNights < 10) {
+      if (maxNights < 10) {
         newDeposit = totalGuests * 100;
       } else {
         newDeposit = totalGuests * 200;
@@ -69,7 +79,7 @@ export default function Home() {
     }
     setValue("deposit", newDeposit);
 
-  }, [nights, adults, children, setValue]);
+  }, [adults, children, sailings, setValue]);
 
   const onSubmit = async (values: z.infer<typeof cruiseEmailSchema>) => {
     setIsLoading(true);
@@ -85,11 +95,19 @@ export default function Home() {
 
       const payload = {
         ...values,
-        cruiseDate: format(values.cruiseDate, "PPP"),
-        dueDate: format(values.dueDate, "PPP"),
         drinksPackage: drinksPackageString,
+        sailings: values.sailings.map(sailing => ({
+          ...sailing,
+          cruiseDate: format(sailing.cruiseDate, "PPP"),
+          dueDate: format(subWeeks(sailing.cruiseDate, 14), "PPP"), // Each sailing has its own due date in the flow
+        }))
       };
-      const response = await generateCruiseEmailAction(payload);
+
+      // We are not using dueDate from the top-level form values in the payload
+      // as each sailing now has its own due date. Let's remove it.
+      const { dueDate, ...finalPayload } = payload;
+      
+      const response = await generateCruiseEmailAction(finalPayload as any);
       if (response.success && response.data) {
         setEmailContent(response.data);
       } else {
@@ -132,10 +150,10 @@ export default function Home() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start max-w-7xl mx-auto">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between">
-              <CardTitle>Cruise Details</CardTitle>
+              <CardTitle>Quote Details</CardTitle>
               <Button variant="outline" size="sm" onClick={handleReset}>
                 <FilePlus2 className="mr-2 h-4 w-4" />
-                New Email
+                New Quote
               </Button>
             </CardHeader>
             <CardContent>
