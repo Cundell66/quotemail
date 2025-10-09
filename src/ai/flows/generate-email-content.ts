@@ -39,7 +39,7 @@ function generateEmailTemplate(input: GenerateEmailContentInput): string {
           }
         }
         
-        const mscPriceLine = !input.hideMscPrice ? `MSC Book Price - £${option.mscBookPrice.toLocaleString('en-GB')}\n` : '';
+        const mscPriceLine = !input.hideMscPrice ? `MSC Price - £${option.mscBookPrice.toLocaleString('en-GB')}\n` : '';
         const optionDetails = `${option.experienceType} ${option.cabinType} - Decks ${option.decks}\n${mscPriceLine}My Price - __**£${formattedPrice}**__ per cabin, not per person!`;
         const paymentDetails = monthlyPaymentText ? `\n${monthlyPaymentText}`: '';
 
@@ -63,7 +63,7 @@ ${input.drinksPackage}
 ${voyagerLine}
 ${sailingsText}
 
-If you would like to go ahead and book this cruise, please let me know and I'll start searching for the perfect cabin for you.
+If you would like to go ahead and book a cruise, please let me know and I'll start searching for the perfect cabin for you.
 
 *Monthly payment amounts are estimates based on assumed information. Full breakdown available on request.*
 `;
