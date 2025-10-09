@@ -56,14 +56,14 @@ function generateEmailTemplate(input: GenerateEmailContentInput): string {
 
   const emailContent = `Hi ${input.customerName},
 
-Thanks for your Quote Request, I've attached some pricing and info below for you.
+Thanks for your Quote Request, I've provided some pricing and info below for you.
 
 ${guestsLine}
 ${input.drinksPackage}
 ${voyagerLine}
 ${sailingsText}
 
-If you would like to go ahead and book a cruise, please let me know and I'll start searching for the perfect cabin for you.
+If you would like to go ahead and book this cruise, please just reply to this email with your option choice and I'll start searching for the perfect cabin for you.
 
 *Monthly payment amounts are estimates based on assumed information. Full breakdown available on request.*
 `;
