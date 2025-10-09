@@ -39,7 +39,8 @@ function generateEmailTemplate(input: GenerateEmailContentInput): string {
           }
         }
         
-        const optionDetails = `${option.experienceType} ${option.cabinType} - Decks ${option.decks}\nMy Price - __**£${formattedPrice}**__ per cabin, not per person!`;
+        const mscPriceLine = !input.hideMscPrice ? `MSC Book Price - £${option.mscBookPrice.toLocaleString('en-GB')}\n` : '';
+        const optionDetails = `${option.experienceType} ${option.cabinType} - Decks ${option.decks}\n${mscPriceLine}My Price - __**£${formattedPrice}**__ per cabin, not per person!`;
         const paymentDetails = monthlyPaymentText ? `\n${monthlyPaymentText}`: '';
 
         return `${optionDetails}${paymentDetails}`;

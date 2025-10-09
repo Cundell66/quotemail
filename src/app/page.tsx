@@ -32,6 +32,7 @@ const defaultFormValues: z.infer<typeof cruiseEmailSchema> = {
   dueDate: subWeeks(addDays(startOfToday(), 15), 14),
   voyagerMember: false,
   sailings: [defaultSailingValue],
+  hideMscPrice: false,
 };
 
 export default function Home() {

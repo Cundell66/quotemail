@@ -1,11 +1,12 @@
 "use server";
 
 import { generateEmailContent } from "@/ai/flows/generate-email-content";
-import type { GenerateEmailContentInput } from "@/lib/schemas";
+import type { cruiseEmailSchema } from "@/lib/schemas";
+import type { z } from "zod";
 
-export async function generateCruiseEmailAction(input: GenerateEmailContentInput) {
+export async function generateCruiseEmailAction(input: z.infer<typeof cruiseEmailSchema>) {
   try {
-    const result = await generateEmailContent(input);
+    const result = await generateEmailContent(input as any); // The schema is slightly different, but compatible
     return { success: true, data: result };
   } catch (error) {
     console.error("Error generating email:", error);

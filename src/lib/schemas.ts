@@ -28,6 +28,7 @@ export const cruiseEmailSchema = z.object({
   dueDate: z.date({ required_error: "A due date is required." }),
   voyagerMember: z.boolean(),
   sailings: z.array(sailingSchema).min(1, "At least one sailing is required."),
+  hideMscPrice: z.boolean(),
 });
 
 // This schema is for the Genkit flow input
@@ -56,6 +57,7 @@ export const GenerateEmailContentInputSchema = z.object({
   deposit: z.number().describe('The deposit amount paid.'),
   voyagerMember: z.boolean().optional().describe('Whether the customer is a Voyager Member.'),
   sailings: z.array(GenkitSailingSchema).describe('The different sailings available.'),
+  hideMscPrice: z.boolean().describe('Whether to hide the MSC book price from the email.'),
 });
 export type GenerateEmailContentInput = z.infer<typeof GenerateEmailContentInputSchema>;
 
