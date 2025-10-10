@@ -16,7 +16,7 @@ import { FilePlus2 } from "lucide-react";
 
 const defaultSailingValue = {
   shipName: "",
-  cruiseDate: addDays(startOfToday(), 30),
+  cruiseDate: addDays(startOfToday(), 568),
   nights: 0,
   cruiseName: "",
   options: [{ experienceType: "", cabinType: "", decks: "", mscBookPrice: 0 }],
