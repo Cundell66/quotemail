@@ -11,3 +11,5 @@ multi cruise quotes
 msc price
 
 calendar
+
+deposit rule and reworded email
