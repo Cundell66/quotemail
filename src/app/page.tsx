@@ -72,10 +72,10 @@ export default function Home() {
 
     let newDeposit = 0;
     if (totalGuests > 0) {
-      if (maxNights < 10) {
-        newDeposit = totalGuests * 100;
-      } else {
+      if (maxNights > 9) {
         newDeposit = totalGuests * 200;
+      } else {
+        newDeposit = totalGuests * 100;
       }
     }
     setValue("deposit", newDeposit);
