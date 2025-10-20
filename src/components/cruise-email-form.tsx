@@ -64,7 +64,7 @@ export function CruiseEmailForm({ form, onSubmit, isLoading }: CruiseEmailFormPr
     <Form {...form}>
       <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
         <div className="space-y-6">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6">
+           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6">
             <FormField
               control={form.control}
               name="customerName"
@@ -78,6 +78,48 @@ export function CruiseEmailForm({ form, onSubmit, isLoading }: CruiseEmailFormPr
                 </FormItem>
               )}
             />
+            <FormField
+              control={form.control}
+              name="customerEmail"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Customer Email</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., jane@example.com" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+          </div>
+          <FormField
+              control={form.control}
+              name="fromAccount"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>From Account</FormLabel>
+                  <Select
+                    onValueChange={field.onChange}
+                    defaultValue={field.value}
+                  >
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Select an account to send from" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="get-that-cruise">Get That Cruise</SelectItem>
+                      <SelectItem value="cruise-aboard">Cruise Aboard</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            
+          <Separator/>
+          
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-4 gap-y-6">
              <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
@@ -242,10 +284,10 @@ export function CruiseEmailForm({ form, onSubmit, isLoading }: CruiseEmailFormPr
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Generating...
+              Generating & Sending...
             </>
           ) : (
-            "Generate Email"
+            "Generate & Send Email"
           )}
         </Button>
       </form>

@@ -20,6 +20,8 @@ const sailingSchema = z.object({
 // This schema is used for client-side form validation
 export const cruiseEmailSchema = z.object({
   customerName: z.string().min(1, { message: "Customer name is required." }),
+  customerEmail: z.string().email({ message: "Please enter a valid email address." }),
+  fromAccount: z.string().min(1, { message: "Please select a sending account." }),
   adults: z.coerce.number({invalid_type_error: "Must be a number."}).int().min(1, "At least one adult is required."),
   children: z.coerce.number({invalid_type_error: "Must be a number."}).int().min(0, "Cannot be negative."),
   drinksPackage: z.boolean(),

@@ -7,7 +7,7 @@ import type { z } from "zod";
 import { format, subWeeks, startOfToday, addDays } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { cruiseEmailSchema } from "@/lib/schemas";
-import { generateCruiseEmailAction } from "@/lib/actions";
+import { generateAndSendEmailAction } from "@/lib/actions";
 import { CruiseEmailForm } from "@/components/cruise-email-form";
 import { EmailPreview } from "@/components/email-preview";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -24,6 +24,8 @@ const defaultSailingValue = {
 
 const defaultFormValues: z.infer<typeof cruiseEmailSchema> = {
   customerName: "",
+  customerEmail: "",
+  fromAccount: "get-that-cruise",
   adults: 2,
   children: 0,
   drinksPackage: false,
@@ -46,7 +48,7 @@ export default function Home() {
     defaultValues: defaultFormValues,
   });
 
-  const { watch, setValue, reset, control } = form;
+  const { watch, setValue, reset } = form;
   const adults = watch("adults");
   const children = watch("children");
   const sailings = watch("sailings");
@@ -67,7 +69,6 @@ export default function Home() {
     const numChildren = Number(children) || 0;
     const totalGuests = numAdults + numChildren;
     
-    // Deposit is now calculated based on the sailing with the most nights.
     const maxNights = sailings?.reduce((max, s) => Math.max(max, s.nights), 0) || 0;
 
     let newDeposit = 0;
@@ -84,48 +85,29 @@ export default function Home() {
 
   const onSubmit = async (values: z.infer<typeof cruiseEmailSchema>) => {
     setIsLoading(true);
+    setEmailContent("");
     try {
-      let drinksPackageString = "No drinks package";
-      if(values.drinksPackage) {
-        if(values.children > 0) {
-          drinksPackageString = "Premium Extra & Minors Drinks Included";
-        } else {
-          drinksPackageString = "Premium Extra Drinks Included";
-        }
-      }
+      const response = await generateAndSendEmailAction(values);
 
-      const payload = {
-        ...values,
-        drinksPackage: drinksPackageString,
-        sailings: values.sailings.map(sailing => ({
-          ...sailing,
-          cruiseDate: format(sailing.cruiseDate, "PPP"),
-          dueDate: format(subWeeks(sailing.cruiseDate, 14), "PPP"), // Each sailing has its own due date in the flow
-        }))
-      };
-
-      // We are not using dueDate from the top-level form values in the payload
-      // as each sailing now has its own due date. Let's remove it.
-      const { dueDate, ...finalPayload } = payload;
-      
-      const response = await generateCruiseEmailAction(finalPayload as any);
       if (response.success && response.data) {
         setEmailContent(response.data);
+        toast({
+          title: "Email Sent Successfully!",
+          description: `Quote sent to ${values.customerEmail}.`,
+        });
       } else {
         toast({
           variant: "destructive",
-          title: "Generation Failed",
+          title: "Action Failed",
           description: response.error,
         });
-        setEmailContent("");
       }
     } catch (error) {
       toast({
         variant: "destructive",
         title: "An Unexpected Error Occurred",
-        description: "Please try again later.",
+        description: "Please check the console for details and try again.",
       });
-      setEmailContent("");
     } finally {
       setIsLoading(false);
     }
