@@ -54,7 +54,7 @@ function generateEmailTemplate(input: GenerateEmailContentInput): string {
 
   let voyagerLine = input.voyagerMember ? 'Voyager Club Discount included\n' : '';
 
-  const emailContent = `Hi ${input.customerName},
+  const emailBody = `Hi ${input.customerName},
 
 Thanks for your Quote Request, I've provided some pricing and info below for you.
 
@@ -66,9 +66,12 @@ ${sailingsText}
 If you would like to go ahead and book this cruise, please just reply to this email with your option choice and I'll start searching for the perfect cabin for you.
 
 *Monthly payment amounts are estimates based on assumed information. Full breakdown available on request.*
-
-${input.signature}
 `;
+
+  // Combine plain text body with HTML signature, separating them for the mailer
+  // Use a unique separator that's unlikely to be in the content
+  const emailContent = `${emailBody}\n\n---SIGNATURE_SEPARATOR---\n\n${input.signature}`;
+
 
   return emailContent;
 }

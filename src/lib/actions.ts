@@ -113,12 +113,16 @@ export async function sendEmailAction(input: z.infer<typeof sendEmailSchema>) {
 
         const transporter = nodemailer.createTransport(smtpConfig);
         
+        const [emailBody, signature] = validatedInput.emailContent.split('\n\n---SIGNATURE_SEPARATOR---\n\n');
+
+        const htmlBody = emailBody.replace(/\n/g, '<br />');
+
         const mailOptions = {
             from: `"${smtpConfig.senderName}" <${smtpConfig.auth.user}>`,
             to: validatedInput.customerEmail,
             subject: `Your Cruise Quote from ${smtpConfig.senderName}`,
-            html: validatedInput.emailContent.replace(/\n/g, '<br />'),
-            text: validatedInput.emailContent,
+            html: `${htmlBody}<br /><br />${signature || smtpConfig.signature}`,
+            text: `${emailBody}\n\n${(signature || smtpConfig.signature).replace(/<[^>]*>?/gm, '')}`,
         };
 
         await transporter.sendMail(mailOptions);

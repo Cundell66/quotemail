@@ -29,11 +29,16 @@ type EmailPreviewProps = {
 
 // A simple markdown-to-HTML converter
 const SimpleMarkdown: React.FC<{ text: string }> = ({ text }) => {
-  const html = text
+  const [body, signature] = text.split('\n\n---SIGNATURE_SEPARATOR---\n\n');
+
+  const bodyHtml = body
     .replace(/__\*\*(.*?)\*\*__/g, '<u><b>$1</b></u>') // bold and underline for price
     .replace(/\n/g, '<br />');
 
-  return <div dangerouslySetInnerHTML={{ __html: html }} />;
+  // The signature is assumed to be HTML, so we just append it.
+  const finalHtml = signature ? `${bodyHtml}<br /><br />${signature}` : bodyHtml;
+
+  return <div dangerouslySetInnerHTML={{ __html: finalHtml }} />;
 };
 
 
@@ -44,7 +49,12 @@ export function EmailPreview({ emailContent, isLoading, isSending, onSend }: Ema
   const handleCopy = async () => {
     if (!emailContent) return;
     try {
-      await navigator.clipboard.writeText(emailContent);
+      // For copying, we'll provide a plain text version
+      const [body, signature] = emailContent.split('\n\n---SIGNATURE_SEPARATOR---\n\n');
+      const plainTextSignature = signature ? signature.replace(/<[^>]*>?/gm, '') : '';
+      const textToCopy = `${body}\n\n${plainTextSignature}`;
+
+      await navigator.clipboard.writeText(textToCopy);
       setIsCopied(true);
       toast({
         title: "Copied to clipboard!",
