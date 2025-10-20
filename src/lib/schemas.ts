@@ -24,13 +24,13 @@ export const cruiseEmailSchema = z.object({
   fromAccount: z.string().min(1, { message: "Please select a sending account." }),
   adults: z.coerce.number({invalid_type_error: "Must be a number."}).int().min(1, "At least one adult is required."),
   children: z.coerce.number({invalid_type_error: "Must be a number."}).int().min(0, "Cannot be negative."),
-  drinksPackage: z.boolean(),
+  drinksPackage: z.boolean().default(false),
   discountPercentage: z.coerce.number({invalid_type_error: "Must be a number."}).min(0, "Cannot be negative.").max(100, "Cannot exceed 100."),
   deposit: z.coerce.number({invalid_type_error: "Must be a number."}).min(0), // Can be 0 if no guests
   dueDate: z.date({ required_error: "A due date is required." }).nullable(),
-  voyagerMember: z.boolean(),
+  voyagerMember: z.boolean().default(false),
   sailings: z.array(sailingSchema).min(1, "At least one sailing is required."),
-  hideMscPrice: z.boolean(),
+  hideMscPrice: z.boolean().default(false),
 });
 
 // This schema is for the Genkit flow input

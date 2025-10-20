@@ -23,6 +23,7 @@ const getDefaultFormValues = (): CruiseFormData => ({
   adults: 2,
   children: 0,
   drinksPackage: false,
+  voyagerMember: false,
   discountPercentage: 8.5,
   deposit: 0,
   dueDate: null, // Initially null
