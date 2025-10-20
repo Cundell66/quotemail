@@ -14,15 +14,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FilePlus2 } from "lucide-react";
 
-const defaultSailingValue = {
+const getDefaultSailingValue = () => ({
   shipName: "",
   cruiseDate: addDays(startOfToday(), 568),
   nights: 0,
   cruiseName: "",
   options: [{ experienceType: "", cabinType: "", decks: "", mscBookPrice: 0 }],
-};
+});
 
-const defaultFormValues: z.infer<typeof cruiseEmailSchema> = {
+const getDefaultFormValues = (): z.infer<typeof cruiseEmailSchema> => ({
   customerName: "",
   customerEmail: "",
   fromAccount: "get-that-cruise",
@@ -31,21 +31,29 @@ const defaultFormValues: z.infer<typeof cruiseEmailSchema> = {
   drinksPackage: false,
   discountPercentage: 8.5,
   deposit: 0,
-  dueDate: subWeeks(addDays(startOfToday(), 15), 14),
+  dueDate: null, // Initially null
   voyagerMember: false,
-  sailings: [defaultSailingValue],
+  sailings: [{
+    shipName: "",
+    cruiseDate: null, // Initially null
+    nights: 0,
+    cruiseName: "",
+    options: [{ experienceType: "", cabinType: "", decks: "", mscBookPrice: 0 }],
+  }],
   hideMscPrice: false,
-};
+});
+
 
 export default function Home() {
   const [emailContent, setEmailContent] = React.useState("");
   const [isLoading, setIsLoading] = React.useState(false);
+  const [isClient, setIsClient] = React.useState(false);
   const { toast } = useToast();
 
   const form = useForm<z.infer<typeof cruiseEmailSchema>>({
     resolver: zodResolver(cruiseEmailSchema),
     mode: "onChange",
-    defaultValues: defaultFormValues,
+    defaultValues: getDefaultFormValues(),
   });
 
   const { watch, setValue, reset } = form;
@@ -53,14 +61,34 @@ export default function Home() {
   const children = watch("children");
   const sailings = watch("sailings");
 
+  React.useEffect(() => {
+    // This effect runs only on the client, after the initial render.
+    // This prevents hydration errors caused by date discrepancies.
+    setIsClient(true);
+    const defaultSailingValue = {
+      shipName: "",
+      cruiseDate: addDays(startOfToday(), 568),
+      nights: 0,
+      cruiseName: "",
+      options: [{ experienceType: "", cabinType: "", decks: "", mscBookPrice: 0 }],
+    };
+    setValue('sailings', [defaultSailingValue]);
+    setValue('dueDate', subWeeks(addDays(startOfToday(), 15), 14));
+  }, [setValue]);
+
 
   React.useEffect(() => {
     // This effect handles setting the due date for each sailing.
     // It seems the original logic only set one due date.
     // Let's assume for now the LATEST cruise date determines the single due date for the whole quote.
     if (sailings && sailings.length > 0) {
-      const latestDate = sailings.reduce((max, s) => s.cruiseDate > max ? s.cruiseDate : max, sailings[0].cruiseDate);
-      setValue("dueDate", subWeeks(latestDate, 14));
+       const validSailings = sailings.filter(s => s.cruiseDate);
+      if (validSailings.length > 0) {
+        const latestDate = validSailings.reduce((max, s) => s.cruiseDate! > max! ? s.cruiseDate : max, validSailings[0].cruiseDate);
+        if (latestDate) {
+          setValue("dueDate", subWeeks(latestDate, 14));
+        }
+      }
     }
   }, [sailings, setValue]);
 
@@ -114,13 +142,31 @@ export default function Home() {
   };
 
   const handleReset = () => {
-    reset(defaultFormValues);
+    const defaultValues = getDefaultFormValues();
+    const defaultSailingValue = {
+      shipName: "",
+      cruiseDate: addDays(startOfToday(), 568),
+      nights: 0,
+      cruiseName: "",
+      options: [{ experienceType: "", cabinType: "", decks: "", mscBookPrice: 0 }],
+    };
+    reset({
+      ...defaultValues,
+      sailings: [defaultSailingValue],
+      dueDate: subWeeks(addDays(startOfToday(), 15), 14)
+    });
     setEmailContent("");
     toast({
       title: "Form Reset",
       description: "The form has been reset to its default values.",
     });
   };
+
+  if (!isClient) {
+    // Render a loading state or skeleton on the server and during initial client render
+    // to avoid hydration mismatch.
+    return null; // Or a loading spinner
+  }
 
   return (
     <div className="min-h-screen w-full bg-background">

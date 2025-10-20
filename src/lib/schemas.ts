@@ -10,7 +10,7 @@ const cruiseOptionSchema = z.object({
 
 const sailingSchema = z.object({
   shipName: z.string().min(1, { message: "Ship name is required." }),
-  cruiseDate: z.date({ required_error: "A cruise date is required." }).min(addDays(startOfToday(), 14), { message: "Cruise date must be at least 2 weeks from today." }),
+  cruiseDate: z.date({ required_error: "A cruise date is required." }).nullable().refine(val => val !== null, { message: "A cruise date is required." }).refine(val => val === null || val > addDays(startOfToday(), 13), { message: "Cruise date must be at least 2 weeks from today." }),
   nights: z.coerce.number({invalid_type_error: "Must be a number."}).int().positive("Must be a positive number."),
   cruiseName: z.string().min(1, { message: "Cruise name is required." }),
   options: z.array(cruiseOptionSchema).min(1, "At least one cruise option is required."),
@@ -27,7 +27,7 @@ export const cruiseEmailSchema = z.object({
   drinksPackage: z.boolean(),
   discountPercentage: z.coerce.number({invalid_type_error: "Must be a number."}).min(0, "Cannot be negative.").max(100, "Cannot exceed 100."),
   deposit: z.coerce.number({invalid_type_error: "Must be a number."}).min(0), // Can be 0 if no guests
-  dueDate: z.date({ required_error: "A due date is required." }),
+  dueDate: z.date({ required_error: "A due date is required." }).nullable(),
   voyagerMember: z.boolean(),
   sailings: z.array(sailingSchema).min(1, "At least one sailing is required."),
   hideMscPrice: z.boolean(),

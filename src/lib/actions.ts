@@ -56,21 +56,26 @@ function getSmtpConfig(fromAccount: string): SmtpConfig {
 
 export async function generateAndSendEmailAction(input: z.infer<typeof cruiseEmailSchema>) {
   try {
+    const validatedInput = cruiseEmailSchema.parse(input);
+    if (validatedInput.sailings.some(s => s.cruiseDate === null)) {
+      throw new Error("Invalid date detected in sailings.");
+    }
+
     // 1. Prepare payload for email content generation
     let drinksPackageString = "No drinks package";
-    if (input.drinksPackage) {
-      drinksPackageString = input.children > 0 
+    if (validatedInput.drinksPackage) {
+      drinksPackageString = validatedInput.children > 0 
         ? "Premium Extra & Minors Drinks Included" 
         : "Premium Extra Drinks Included";
     }
 
     const generationPayload = {
-      ...input,
+      ...validatedInput,
       drinksPackage: drinksPackageString,
-      sailings: input.sailings.map(sailing => ({
+      sailings: validatedInput.sailings.map(sailing => ({
         ...sailing,
-        cruiseDate: format(sailing.cruiseDate, "PPP"),
-        dueDate: format(subWeeks(sailing.cruiseDate, 14), "PPP"),
+        cruiseDate: format(sailing.cruiseDate!, "PPP"),
+        dueDate: format(subWeeks(sailing.cruiseDate!, 14), "PPP"),
       })),
     };
     
@@ -84,12 +89,12 @@ export async function generateAndSendEmailAction(input: z.infer<typeof cruiseEma
     }
 
     // 3. Send the email via SMTP
-    const smtpConfig = getSmtpConfig(input.fromAccount);
+    const smtpConfig = getSmtpConfig(validatedInput.fromAccount);
     const transporter = nodemailer.createTransport(smtpConfig);
     
     const mailOptions = {
         from: `"${smtpConfig.senderName}" <${smtpConfig.auth.user}>`,
-        to: input.customerEmail,
+        to: validatedInput.customerEmail,
         subject: `Your Cruise Quote from ${smtpConfig.senderName}`,
         html: emailContent.replace(/\n/g, '<br />'),
         text: emailContent,

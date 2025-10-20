@@ -362,6 +362,9 @@ function CruiseSailingForm({ form, sailingIndex }: { form: UseFormReturn<z.infer
                       mode="single"
                       selected={field.value}
                       onSelect={field.onChange}
+                      disabled={(date) =>
+                        date < addDays(startOfToday(), 13) 
+                      }
                       initialFocus
                     />
                   </PopoverContent>
