@@ -66,6 +66,8 @@ ${sailingsText}
 If you would like to go ahead and book this cruise, please just reply to this email with your option choice and I'll start searching for the perfect cabin for you.
 
 *Monthly payment amounts are estimates based on assumed information. Full breakdown available on request.*
+
+${input.signature}
 `;
 
   return emailContent;

@@ -15,11 +15,12 @@ type SmtpConfig = {
     pass: string;
   };
   senderName: string;
+  signature: string;
 };
 
 function getSmtpConfig(fromAccount: string): SmtpConfig {
   if (fromAccount === 'get-that-cruise') {
-    if (!process.env.GETTHATCRUISE_MAIL_SERVER || !process.env.GETTHATCRUISE_SENDER_EMAIL || !process.env.GETTHATCRUISE_SENDER_PASSWORD) {
+    if (!process.env.GETTHATCRUISE_MAIL_SERVER || !process.env.GETTHATCRUISE_SENDER_EMAIL || !process.env.GETTHATCRUISE_SENDER_PASSWORD || !process.env.GETTHATCRUISE_SIGNATURE) {
         throw new Error("Missing SMTP configuration for Get That Cruise.");
     }
     return {
@@ -31,11 +32,12 @@ function getSmtpConfig(fromAccount: string): SmtpConfig {
         pass: process.env.GETTHATCRUISE_SENDER_PASSWORD,
       },
       senderName: process.env.GETTHATCRUISE_SENDER_NAME || "Get That Cruise",
+      signature: process.env.GETTHATCRUISE_SIGNATURE,
     };
   }
 
   if (fromAccount === 'cruise-aboard') {
-     if (!process.env.CRUISEABOARD_MAIL_SERVER || !process.env.CRUISEABOARD_SENDER_EMAIL || !process.env.CRUISEABOARD_SENDER_PASSWORD) {
+     if (!process.env.CRUISEABOARD_MAIL_SERVER || !process.env.CRUISEABOARD_SENDER_EMAIL || !process.env.CRUISEABOARD_SENDER_PASSWORD || !process.env.CRUISEABOARD_SIGNATURE) {
         throw new Error("Missing SMTP configuration for Cruise Aboard.");
     }
     return {
@@ -47,6 +49,7 @@ function getSmtpConfig(fromAccount: string): SmtpConfig {
         pass: process.env.CRUISEABOARD_SENDER_PASSWORD,
       },
       senderName: process.env.CRUISEABOARD_SENDER_NAME || "Cruise Aboard",
+      signature: process.env.CRUISEABOARD_SIGNATURE,
     };
   }
 
@@ -60,6 +63,8 @@ export async function generateAndSendEmailAction(input: z.infer<typeof cruiseEma
     if (validatedInput.sailings.some(s => s.cruiseDate === null)) {
       throw new Error("Invalid date detected in sailings.");
     }
+
+    const smtpConfig = getSmtpConfig(validatedInput.fromAccount);
 
     // 1. Prepare payload for email content generation
     let drinksPackageString = "No drinks package";
@@ -77,6 +82,7 @@ export async function generateAndSendEmailAction(input: z.infer<typeof cruiseEma
         cruiseDate: format(sailing.cruiseDate!, "PPP"),
         dueDate: format(subWeeks(sailing.cruiseDate!, 14), "PPP"),
       })),
+      signature: smtpConfig.signature,
     };
     
     // We are not using dueDate from the top-level form values in the payload
@@ -89,7 +95,6 @@ export async function generateAndSendEmailAction(input: z.infer<typeof cruiseEma
     }
 
     // 3. Send the email via SMTP
-    const smtpConfig = getSmtpConfig(validatedInput.fromAccount);
     const transporter = nodemailer.createTransport(smtpConfig);
     
     const mailOptions = {

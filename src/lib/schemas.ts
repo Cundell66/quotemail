@@ -60,6 +60,7 @@ export const GenerateEmailContentInputSchema = z.object({
   voyagerMember: z.boolean().optional().describe('Whether the customer is a Voyager Member.'),
   sailings: z.array(GenkitSailingSchema).describe('The different sailings available.'),
   hideMscPrice: z.boolean().describe('Whether to hide the MSC book price from the email.'),
+  signature: z.string().describe('The email signature to be appended.'),
 });
 export type GenerateEmailContentInput = z.infer<typeof GenerateEmailContentInputSchema>;
 
