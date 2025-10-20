@@ -57,7 +57,7 @@ function getSmtpConfig(fromAccount: string): SmtpConfig {
 }
 
 
-export async function generateAndSendEmailAction(input: z.infer<typeof cruiseEmailSchema>) {
+export async function generateEmailAction(input: z.infer<typeof cruiseEmailSchema>) {
   try {
     const validatedInput = cruiseEmailSchema.parse(input);
     if (validatedInput.sailings.some(s => s.cruiseDate === null)) {
@@ -66,7 +66,6 @@ export async function generateAndSendEmailAction(input: z.infer<typeof cruiseEma
 
     const smtpConfig = getSmtpConfig(validatedInput.fromAccount);
 
-    // 1. Prepare payload for email content generation
     let drinksPackageString = "No drinks package";
     if (validatedInput.drinksPackage) {
       drinksPackageString = validatedInput.children > 0 
@@ -85,34 +84,50 @@ export async function generateAndSendEmailAction(input: z.infer<typeof cruiseEma
       signature: smtpConfig.signature,
     };
     
-    // We are not using dueDate from the top-level form values in the payload
     const { dueDate, ...finalPayload } = generationPayload;
 
-    // 2. Generate the email content
-    const emailContent = await generateEmailContent(finalPayload as any); // The schema is slightly different, but compatible
+    const emailContent = await generateEmailContent(finalPayload as any);
     if (!emailContent) {
       return { success: false, error: "Failed to generate email content." };
     }
-
-    // 3. Send the email via SMTP
-    const transporter = nodemailer.createTransport(smtpConfig);
     
-    const mailOptions = {
-        from: `"${smtpConfig.senderName}" <${smtpConfig.auth.user}>`,
-        to: validatedInput.customerEmail,
-        subject: `Your Cruise Quote from ${smtpConfig.senderName}`,
-        html: emailContent.replace(/\n/g, '<br />'),
-        text: emailContent,
-    };
-
-    await transporter.sendMail(mailOptions);
-    
-    // Return the generated content to display in the preview
     return { success: true, data: emailContent };
 
   } catch (error) {
-    console.error("Error in generateAndSendEmailAction:", error);
+    console.error("Error in generateEmailAction:", error);
     const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
     return { success: false, error: `Failed to process your request: ${errorMessage}` };
   }
+}
+
+const sendEmailSchema = z.object({
+    customerEmail: z.string().email(),
+    fromAccount: z.string(),
+    emailContent: z.string(),
+});
+
+export async function sendEmailAction(input: z.infer<typeof sendEmailSchema>) {
+    try {
+        const validatedInput = sendEmailSchema.parse(input);
+        const smtpConfig = getSmtpConfig(validatedInput.fromAccount);
+
+        const transporter = nodemailer.createTransport(smtpConfig);
+        
+        const mailOptions = {
+            from: `"${smtpConfig.senderName}" <${smtpConfig.auth.user}>`,
+            to: validatedInput.customerEmail,
+            subject: `Your Cruise Quote from ${smtpConfig.senderName}`,
+            html: validatedInput.emailContent.replace(/\n/g, '<br />'),
+            text: validatedInput.emailContent,
+        };
+
+        await transporter.sendMail(mailOptions);
+        
+        return { success: true };
+
+    } catch (error) {
+        console.error("Error in sendEmailAction:", error);
+        const errorMessage = error instanceof Error ? error.message : "An unknown error occurred";
+        return { success: false, error: `Failed to send email: ${errorMessage}` };
+    }
 }

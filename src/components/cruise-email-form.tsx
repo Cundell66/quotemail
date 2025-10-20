@@ -35,6 +35,7 @@ import { Separator } from "@/components/ui/separator";
 import type { cruiseEmailSchema } from "@/lib/schemas";
 import { cn } from "@/lib/utils";
 import { addDays, startOfToday } from 'date-fns';
+import { ScrollArea } from "./ui/scroll-area";
 
 type CruiseEmailFormProps = {
   form: UseFormReturn<z.infer<typeof cruiseEmailSchema>>;
@@ -284,10 +285,10 @@ export function CruiseEmailForm({ form, onSubmit, isLoading }: CruiseEmailFormPr
           {isLoading ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Generating & Sending...
+              Generating Preview...
             </>
           ) : (
-            "Generate & Send Email"
+            "Generate Preview"
           )}
         </Button>
       </form>

@@ -4,25 +4,19 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
-import { format, subWeeks, startOfToday, addDays } from "date-fns";
+import { addDays, startOfToday, subWeeks } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { cruiseEmailSchema } from "@/lib/schemas";
-import { generateAndSendEmailAction } from "@/lib/actions";
+import { generateEmailAction, sendEmailAction } from "@/lib/actions";
 import { CruiseEmailForm } from "@/components/cruise-email-form";
 import { EmailPreview } from "@/components/email-preview";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { FilePlus2 } from "lucide-react";
 
-const getDefaultSailingValue = () => ({
-  shipName: "",
-  cruiseDate: addDays(startOfToday(), 568),
-  nights: 0,
-  cruiseName: "",
-  options: [{ experienceType: "", cabinType: "", decks: "", mscBookPrice: 0 }],
-});
+type CruiseFormData = z.infer<typeof cruiseEmailSchema>;
 
-const getDefaultFormValues = (): z.infer<typeof cruiseEmailSchema> => ({
+const getDefaultFormValues = (): CruiseFormData => ({
   customerName: "",
   customerEmail: "",
   fromAccount: "get-that-cruise",
@@ -32,7 +26,6 @@ const getDefaultFormValues = (): z.infer<typeof cruiseEmailSchema> => ({
   discountPercentage: 8.5,
   deposit: 0,
   dueDate: null, // Initially null
-  voyagerMember: false,
   sailings: [{
     shipName: "",
     cruiseDate: null, // Initially null
@@ -46,11 +39,13 @@ const getDefaultFormValues = (): z.infer<typeof cruiseEmailSchema> => ({
 
 export default function Home() {
   const [emailContent, setEmailContent] = React.useState("");
-  const [isLoading, setIsLoading] = React.useState(false);
+  const [isGenerating, setIsGenerating] = React.useState(false);
+  const [isSending, setIsSending] = React.useState(false);
   const [isClient, setIsClient] = React.useState(false);
+  const [lastGeneratedData, setLastGeneratedData] = React.useState<CruiseFormData | null>(null);
   const { toast } = useToast();
 
-  const form = useForm<z.infer<typeof cruiseEmailSchema>>({
+  const form = useForm<CruiseFormData>({
     resolver: zodResolver(cruiseEmailSchema),
     mode: "onChange",
     defaultValues: getDefaultFormValues(),
@@ -62,8 +57,6 @@ export default function Home() {
   const sailings = watch("sailings");
 
   React.useEffect(() => {
-    // This effect runs only on the client, after the initial render.
-    // This prevents hydration errors caused by date discrepancies.
     setIsClient(true);
     const defaultSailingValue = {
       shipName: "",
@@ -78,9 +71,6 @@ export default function Home() {
 
 
   React.useEffect(() => {
-    // This effect handles setting the due date for each sailing.
-    // It seems the original logic only set one due date.
-    // Let's assume for now the LATEST cruise date determines the single due date for the whole quote.
     if (sailings && sailings.length > 0) {
        const validSailings = sailings.filter(s => s.cruiseDate);
       if (validSailings.length > 0) {
@@ -111,22 +101,24 @@ export default function Home() {
 
   }, [adults, children, sailings, setValue]);
 
-  const onSubmit = async (values: z.infer<typeof cruiseEmailSchema>) => {
-    setIsLoading(true);
+  const handleGenerate = async (values: CruiseFormData) => {
+    setIsGenerating(true);
     setEmailContent("");
+    setLastGeneratedData(null);
     try {
-      const response = await generateAndSendEmailAction(values);
+      const response = await generateEmailAction(values);
 
       if (response.success && response.data) {
         setEmailContent(response.data);
+        setLastGeneratedData(values);
         toast({
-          title: "Email Sent Successfully!",
-          description: `Quote sent to ${values.customerEmail}.`,
+          title: "Preview Generated",
+          description: "The email preview has been updated.",
         });
       } else {
         toast({
           variant: "destructive",
-          title: "Action Failed",
+          title: "Generation Failed",
           description: response.error,
         });
       }
@@ -137,9 +129,51 @@ export default function Home() {
         description: "Please check the console for details and try again.",
       });
     } finally {
-      setIsLoading(false);
+      setIsGenerating(false);
     }
   };
+
+  const handleSend = async () => {
+    if (!emailContent || !lastGeneratedData) {
+      toast({
+        variant: "destructive",
+        title: "Cannot Send",
+        description: "Please generate an email preview first.",
+      });
+      return;
+    }
+    
+    setIsSending(true);
+    try {
+      const response = await sendEmailAction({
+        customerEmail: lastGeneratedData.customerEmail,
+        fromAccount: lastGeneratedData.fromAccount,
+        emailContent: emailContent,
+      });
+
+      if (response.success) {
+        toast({
+          title: "Email Sent Successfully!",
+          description: `Quote sent to ${lastGeneratedData.customerEmail}.`,
+        });
+      } else {
+        toast({
+          variant: "destructive",
+          title: "Send Failed",
+          description: response.error,
+        });
+      }
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "An Unexpected Error Occurred",
+        description: "Could not send the email. Please try again.",
+      });
+    } finally {
+      setIsSending(false);
+    }
+  };
+
 
   const handleReset = () => {
     const defaultValues = getDefaultFormValues();
@@ -156,6 +190,7 @@ export default function Home() {
       dueDate: subWeeks(addDays(startOfToday(), 15), 14)
     });
     setEmailContent("");
+    setLastGeneratedData(null);
     toast({
       title: "Form Reset",
       description: "The form has been reset to its default values.",
@@ -163,8 +198,6 @@ export default function Home() {
   };
 
   if (!isClient) {
-    // Render a loading state or skeleton on the server and during initial client render
-    // to avoid hydration mismatch.
     return null; // Or a loading spinner
   }
 
@@ -186,10 +219,15 @@ export default function Home() {
               </Button>
             </CardHeader>
             <CardContent>
-              <CruiseEmailForm form={form} onSubmit={onSubmit} isLoading={isLoading} />
+              <CruiseEmailForm form={form} onSubmit={handleGenerate} isLoading={isGenerating} />
             </CardContent>
           </Card>
-          <EmailPreview emailContent={emailContent} isLoading={isLoading} />
+          <EmailPreview 
+            emailContent={emailContent} 
+            isLoading={isGenerating}
+            isSending={isSending}
+            onSend={handleSend}
+          />
         </div>
       </main>
     </div>

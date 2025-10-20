@@ -1,7 +1,7 @@
 "use client";
 
 import * as React from "react";
-import { Check, Copy, Bot } from "lucide-react";
+import { Check, Copy, Bot, Send, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import {
@@ -10,6 +10,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -22,6 +23,8 @@ import {
 type EmailPreviewProps = {
   emailContent: string;
   isLoading: boolean;
+  isSending: boolean;
+  onSend: () => void;
 };
 
 // A simple markdown-to-HTML converter
@@ -34,7 +37,7 @@ const SimpleMarkdown: React.FC<{ text: string }> = ({ text }) => {
 };
 
 
-export function EmailPreview({ emailContent, isLoading }: EmailPreviewProps) {
+export function EmailPreview({ emailContent, isLoading, isSending, onSend }: EmailPreviewProps) {
   const [isCopied, setIsCopied] = React.useState(false);
   const { toast } = useToast();
 
@@ -58,7 +61,7 @@ export function EmailPreview({ emailContent, isLoading }: EmailPreviewProps) {
   };
 
   return (
-    <Card className="lg:sticky lg:top-8">
+    <Card className="lg:sticky lg:top-8 flex flex-col">
       <CardHeader className="flex flex-row items-start justify-between">
         <div>
           <CardTitle className="flex items-center gap-2">
@@ -92,7 +95,7 @@ export function EmailPreview({ emailContent, isLoading }: EmailPreviewProps) {
           </Tooltip>
         </TooltipProvider>
       </CardHeader>
-      <CardContent>
+      <CardContent className="flex-grow">
         <div className="prose prose-sm dark:prose-invert min-h-[300px] w-full rounded-md border bg-muted/20 p-4 transition-all">
           {isLoading ? (
             <div className="space-y-3 pt-2">
@@ -112,6 +115,25 @@ export function EmailPreview({ emailContent, isLoading }: EmailPreviewProps) {
           )}
         </div>
       </CardContent>
+       <CardFooter>
+        <Button 
+          onClick={onSend} 
+          disabled={!emailContent || isSending || isLoading} 
+          className="w-full"
+        >
+          {isSending ? (
+            <>
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              Sending...
+            </>
+          ) : (
+            <>
+              <Send className="mr-2 h-4 w-4" />
+              Send Email
+            </>
+          )}
+        </Button>
+      </CardFooter>
     </Card>
   );
 }

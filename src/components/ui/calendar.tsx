@@ -6,6 +6,8 @@ import { DayPicker } from "react-day-picker"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select"
+import { ScrollArea } from "./scroll-area"
 
 export type CalendarProps = React.ComponentProps<typeof DayPicker>
 
@@ -15,22 +17,60 @@ function Calendar({
   showOutsideDays = true,
   ...props
 }: CalendarProps) {
+  
+  const CustomDropdown = ({ value, onChange, children, ...dropdownProps }) => {
+    const options = React.Children.toArray(
+      children
+    ).filter(React.isValidElement);
+    
+    const selected = options.find((child) => child.props.value?.toString() === value?.toString());
+
+    const handleChange = (newValue) => {
+      const changeEvent = {
+        target: { value: newValue },
+      };
+      onChange?.(changeEvent as any);
+    };
+
+    return (
+      <Select
+        value={value?.toString()}
+        onValueChange={handleChange}
+      >
+        <SelectTrigger className="pr-1.5 h-8 w-fit min-w-[100px] focus:ring-0 text-sm font-semibold border-muted-foreground/30">
+          <SelectValue>
+            {selected?.props?.children}
+          </SelectValue>
+        </SelectTrigger>
+        <SelectContent position="popper" className="max-h-60 dark:bg-card dark:border-border">
+          <ScrollArea className="h-full">
+            {options.map((option, id) => (
+              <SelectItem
+                key={`${option.props.value}-${id}`}
+                value={option.props.value?.toString() ?? ""}
+              >
+                {option.props.children}
+              </SelectItem>
+            ))}
+          </ScrollArea>
+        </SelectContent>
+      </Select>
+    );
+  };
+
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
-      captionLayout="dropdown"
-      fromMonth={new Date(2027, 4)}
-      // fromYear={2025}
-      toYear={new Date().getFullYear() + 3}
-
+      captionLayout="dropdown-nav"
+      fromYear={new Date().getFullYear() - 80}
+      toYear={new Date().getFullYear() + 5}
       classNames={{
-        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-2 sm:space-y-0",
-        month: "space-y-2",
-        caption: "flex pt-1 relative items-center",
-        caption_label: "text-sm font-medium sr-only hidden",
-        caption_dropdowns: "flex flex-grow text-primary-foreground", // Position the dropdowns
-        
+        months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",
+        month: "space-y-4",
+        caption: "flex justify-between pt-1 relative items-center px-1",
+        caption_label: "text-sm font-medium sr-only",
+        caption_dropdowns: "flex justify-center gap-2 flex-grow",
         nav: "space-x-1 flex items-center",
         nav_button: cn(
           buttonVariants({ variant: "outline" }),
@@ -53,7 +93,7 @@ function Calendar({
           "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
         day_today: "bg-accent text-accent-foreground",
         day_outside:
-          "day-outside text-muted-foreground aria-selected:bg-accent/50 aria-selected:text-muted-foreground",
+          "day-outside text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground",
         day_disabled: "text-muted-foreground opacity-50",
         day_range_middle:
           "aria-selected:bg-accent aria-selected:text-accent-foreground",
@@ -61,12 +101,9 @@ function Calendar({
         ...classNames,
       }}
       components={{
-        IconLeft: ({ className, ...props }) => (
-          <ChevronLeft className={cn("h-4 w-4", className)} {...props} />
-        ),
-        IconRight: ({ className, ...props }) => (
-          <ChevronRight className={cn("h-4 w-4", className)} {...props} />
-        ),
+        IconLeft: ({ ...props }) => <ChevronLeft className="h-4 w-4" />,
+        IconRight: ({ ...props }) => <ChevronRight className="h-4 w-4" />,
+        Dropdown: CustomDropdown,
       }}
       {...props}
     />
