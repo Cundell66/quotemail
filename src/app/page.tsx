@@ -100,7 +100,8 @@ export default function Home() {
     }
     setValue("deposit", newDeposit);
 
-  }, [adults, children, sailings, setValue]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [adults, children, setValue, JSON.stringify(sailings)]);
 
   const handleGenerate = async (values: CruiseFormData) => {
     setIsGenerating(true);
