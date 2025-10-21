@@ -60,8 +60,12 @@ function getSmtpConfig(fromAccount: string): SmtpConfig {
 export async function generateEmailAction(input: z.infer<typeof cruiseEmailSchema>) {
   try {
     const validatedInput = cruiseEmailSchema.parse(input);
-    if (validatedInput.sailings.some(s => s.cruiseDate === null)) {
-      throw new Error("Invalid date detected in sailings.");
+    
+    // This check is now safer with nullable dates in the base schema
+    const hasNullDate = validatedInput.sailings.some(s => s.cruiseDate === null);
+    if (hasNullDate) {
+      // This case should ideally not be hit if the form validation is effective
+      throw new Error("A cruise date is required for all sailings before generating an email.");
     }
 
     const smtpConfig = getSmtpConfig(validatedInput.fromAccount);
@@ -76,6 +80,7 @@ export async function generateEmailAction(input: z.infer<typeof cruiseEmailSchem
     const generationPayload = {
       ...validatedInput,
       drinksPackage: drinksPackageString,
+      // The non-null assertion (!) is safe here because of the check above
       sailings: validatedInput.sailings.map(sailing => ({
         ...sailing,
         cruiseDate: format(sailing.cruiseDate!, "PPP"),
@@ -115,7 +120,10 @@ export async function sendEmailAction(input: z.infer<typeof sendEmailSchema>) {
         
         const [emailBody, signature] = validatedInput.emailContent.split('\n\n---SIGNATURE_SEPARATOR---\n\n');
 
-        const htmlBody = emailBody.replace(/\n/g, '<br />');
+        const htmlBody = emailBody
+          .replace(/__\*\*(.*?)\*\*__/g, '<u><b>$1</b></u>') // bold and underline for price
+          .replace(/\n/g, '<br />');
+
 
         const mailOptions = {
             from: `"${smtpConfig.senderName}" <${smtpConfig.auth.user}>`,
