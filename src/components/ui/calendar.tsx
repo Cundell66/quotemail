@@ -63,7 +63,7 @@ function Calendar({
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
       captionLayout="dropdown"
-      fromYear={new Date().getFullYear() - 80}
+      fromYear={new Date().getFullYear()}
       toYear={new Date().getFullYear() + 5}
       classNames={{
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-4 sm:space-y-0",

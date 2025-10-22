@@ -108,7 +108,8 @@ export async function generateEmailAction(input: z.infer<typeof cruiseEmailSchem
 const sendEmailSchema = z.object({
     customerEmail: z.string().email(),
     fromAccount: z.string(),
-    emailContent: z.string(),
+    emailBody: z.string(),
+    signature: z.string(),
 });
 
 export async function sendEmailAction(input: z.infer<typeof sendEmailSchema>) {
@@ -118,20 +119,19 @@ export async function sendEmailAction(input: z.infer<typeof sendEmailSchema>) {
 
         const transporter = nodemailer.createTransport(smtpConfig);
         
-        const [emailBody, signature] = validatedInput.emailContent.split('\n\n---SIGNATURE_SEPARATOR---\n\n');
-
-        const htmlBody = emailBody
+        const htmlBody = validatedInput.emailBody
           .replace(/__\*\*(.*?)\*\*__/g, '<u><b>$1</b></u>') // bold and underline for price
           .replace(/\n/g, '<br />');
 
+        const signatureHtml = validatedInput.signature || smtpConfig.signature;
 
         const mailOptions = {
             from: `"${smtpConfig.senderName}" <${smtpConfig.auth.user}>`,
             to: validatedInput.customerEmail,
             bcc: smtpConfig.auth.user,
             subject: `Your Cruise Quote from ${smtpConfig.senderName}`,
-            html: `${htmlBody}<br /><br />${signature || smtpConfig.signature}`,
-            text: `${emailBody}\n\n${(signature || smtpConfig.signature).replace(/<[^>]*>?/gm, '')}`,
+            html: `${htmlBody}<br /><br />${signatureHtml}`,
+            text: `${validatedInput.emailBody}\n\n${signatureHtml.replace(/<[^>]*>?/gm, '')}`,
         };
 
         await transporter.sendMail(mailOptions);

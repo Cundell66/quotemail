@@ -39,7 +39,8 @@ const getDefaultFormValues = (): CruiseFormData => ({
 
 
 export default function Home() {
-  const [emailContent, setEmailContent] = React.useState("");
+  const [emailBody, setEmailBody] = React.useState("");
+  const [emailSignature, setEmailSignature] = React.useState("");
   const [isGenerating, setIsGenerating] = React.useState(false);
   const [isSending, setIsSending] = React.useState(false);
   const [isClient, setIsClient] = React.useState(false);
@@ -105,13 +106,16 @@ export default function Home() {
 
   const handleGenerate = async (values: CruiseFormData) => {
     setIsGenerating(true);
-    setEmailContent("");
+    setEmailBody("");
+    setEmailSignature("");
     setLastGeneratedData(null);
     try {
       const response = await generateEmailAction(values);
 
       if (response.success && response.data) {
-        setEmailContent(response.data);
+        const [body, signature] = response.data.split('\n\n---SIGNATURE_SEPARATOR---\n\n');
+        setEmailBody(body);
+        setEmailSignature(signature || "");
         setLastGeneratedData(values);
         toast({
           title: "Preview Generated",
@@ -135,8 +139,8 @@ export default function Home() {
     }
   };
 
-  const handleSend = async () => {
-    if (!emailContent || !lastGeneratedData) {
+  const handleSend = async (editedBody: string) => {
+    if (!editedBody || !lastGeneratedData) {
       toast({
         variant: "destructive",
         title: "Cannot Send",
@@ -150,7 +154,8 @@ export default function Home() {
       const response = await sendEmailAction({
         customerEmail: lastGeneratedData.customerEmail,
         fromAccount: lastGeneratedData.fromAccount,
-        emailContent: emailContent,
+        emailBody: editedBody,
+        signature: emailSignature,
       });
 
       if (response.success) {
@@ -191,7 +196,8 @@ export default function Home() {
       sailings: [defaultSailingValue],
       dueDate: subWeeks(addDays(startOfToday(), 15), 14)
     });
-    setEmailContent("");
+    setEmailBody("");
+    setEmailSignature("");
     setLastGeneratedData(null);
     toast({
       title: "Form Reset",
@@ -225,7 +231,8 @@ export default function Home() {
             </CardContent>
           </Card>
           <EmailPreview 
-            emailContent={emailContent} 
+            emailBody={emailBody} 
+            emailSignature={emailSignature}
             isLoading={isGenerating}
             isSending={isSending}
             onSend={handleSend}

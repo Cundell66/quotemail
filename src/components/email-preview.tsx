@@ -19,40 +19,30 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { Textarea } from "./ui/textarea";
 
 type EmailPreviewProps = {
-  emailContent: string;
+  emailBody: string;
+  emailSignature: string;
   isLoading: boolean;
   isSending: boolean;
-  onSend: () => void;
+  onSend: (editedBody: string) => void;
 };
 
-// A simple markdown-to-HTML converter
-const SimpleMarkdown: React.FC<{ text: string }> = ({ text }) => {
-  const [body, signature] = text.split('\n\n---SIGNATURE_SEPARATOR---\n\n');
-
-  const bodyHtml = body
-    .replace(/__\*\*(.*?)\*\*__/g, '<u><b>$1</b></u>') // bold and underline for price
-    .replace(/\n/g, '<br />');
-
-  // The signature is assumed to be HTML, so we just append it.
-  const finalHtml = signature ? `${bodyHtml}<br /><br />${signature}` : bodyHtml;
-
-  return <div dangerouslySetInnerHTML={{ __html: finalHtml }} />;
-};
-
-
-export function EmailPreview({ emailContent, isLoading, isSending, onSend }: EmailPreviewProps) {
+export function EmailPreview({ emailBody, emailSignature, isLoading, isSending, onSend }: EmailPreviewProps) {
   const [isCopied, setIsCopied] = React.useState(false);
+  const [editedBody, setEditedBody] = React.useState(emailBody);
   const { toast } = useToast();
 
+  React.useEffect(() => {
+    setEditedBody(emailBody);
+  }, [emailBody]);
+
   const handleCopy = async () => {
-    if (!emailContent) return;
+    if (!editedBody) return;
     try {
-      // For copying, we'll provide a plain text version
-      const [body, signature] = emailContent.split('\n\n---SIGNATURE_SEPARATOR---\n\n');
-      const plainTextSignature = signature ? signature.replace(/<[^>]*>?/gm, '') : '';
-      const textToCopy = `${body}\n\n${plainTextSignature}`;
+      const plainTextSignature = emailSignature ? emailSignature.replace(/<[^>]*>?/gm, '') : '';
+      const textToCopy = `${editedBody}\n\n${plainTextSignature}`;
 
       await navigator.clipboard.writeText(textToCopy);
       setIsCopied(true);
@@ -70,6 +60,8 @@ export function EmailPreview({ emailContent, isLoading, isSending, onSend }: Ema
     }
   };
 
+  const hasContent = emailBody || editedBody;
+
   return (
     <Card className="lg:sticky lg:top-8 flex flex-col">
       <CardHeader className="flex flex-row items-start justify-between">
@@ -79,7 +71,7 @@ export function EmailPreview({ emailContent, isLoading, isSending, onSend }: Ema
             Live Email Preview
           </CardTitle>
           <CardDescription>
-            The generated email will appear below.
+            The generated email will appear below. You can edit it before sending.
           </CardDescription>
         </div>
         <TooltipProvider>
@@ -89,7 +81,7 @@ export function EmailPreview({ emailContent, isLoading, isSending, onSend }: Ema
                 variant="ghost"
                 size="icon"
                 onClick={handleCopy}
-                disabled={isLoading || !emailContent}
+                disabled={isLoading || !hasContent}
                 aria-label="Copy email content"
               >
                 {isCopied ? (
@@ -105,8 +97,8 @@ export function EmailPreview({ emailContent, isLoading, isSending, onSend }: Ema
           </Tooltip>
         </TooltipProvider>
       </CardHeader>
-      <CardContent className="flex-grow">
-        <div className="prose prose-sm dark:prose-invert min-h-[300px] w-full rounded-md border bg-muted/20 p-4 transition-all">
+      <CardContent className="flex-grow flex flex-col gap-4">
+        <div className="prose prose-sm dark:prose-invert flex-grow w-full rounded-md border bg-muted/20 p-4 transition-all">
           {isLoading ? (
             <div className="space-y-3 pt-2">
               <Skeleton className="h-4 w-3/4" />
@@ -114,21 +106,31 @@ export function EmailPreview({ emailContent, isLoading, isSending, onSend }: Ema
               <Skeleton className="h-4 w-full" />
               <Skeleton className="h-4 w-5/6" />
             </div>
+          ) : hasContent ? (
+            <>
+              <Textarea
+                value={editedBody}
+                onChange={(e) => setEditedBody(e.target.value)}
+                className="w-full h-full min-h-[250px] bg-transparent border-0 focus-visible:ring-0 resize-none font-sans text-sm text-foreground"
+                placeholder="Email content will appear here..."
+              />
+            </>
           ) : (
             <div className="whitespace-pre-wrap font-sans text-sm text-foreground">
-              {emailContent ? (
-                <SimpleMarkdown text={emailContent} />
-              ) : (
-                "Fill out the form to see the generated email..."
-              )}
+              Fill out the form to see the generated email...
             </div>
           )}
         </div>
+        {emailSignature && (
+            <div className="prose prose-sm dark:prose-invert w-full rounded-md border bg-muted/20 p-4 font-sans text-sm text-foreground">
+                <div dangerouslySetInnerHTML={{ __html: emailSignature.replace(/\n/g, '<br />') }} />
+            </div>
+        )}
       </CardContent>
        <CardFooter>
         <Button 
-          onClick={onSend} 
-          disabled={!emailContent || isSending || isLoading} 
+          onClick={() => onSend(editedBody)} 
+          disabled={!hasContent || isSending || isLoading} 
           className="w-full"
         >
           {isSending ? (
