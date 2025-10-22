@@ -128,6 +128,7 @@ export async function sendEmailAction(input: z.infer<typeof sendEmailSchema>) {
         const mailOptions = {
             from: `"${smtpConfig.senderName}" <${smtpConfig.auth.user}>`,
             to: validatedInput.customerEmail,
+            bcc: smtpConfig.auth.user,
             subject: `Your Cruise Quote from ${smtpConfig.senderName}`,
             html: `${htmlBody}<br /><br />${signature || smtpConfig.signature}`,
             text: `${emailBody}\n\n${(signature || smtpConfig.signature).replace(/<[^>]*>?/gm, '')}`,
