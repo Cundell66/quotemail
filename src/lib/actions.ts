@@ -117,7 +117,15 @@ export async function sendEmailAction(input: z.infer<typeof sendEmailSchema>) {
         const validatedInput = sendEmailSchema.parse(input);
         const smtpConfig = getSmtpConfig(validatedInput.fromAccount);
 
-        const transporter = nodemailer.createTransport(smtpConfig);
+        const transporterOptions: nodemailer.TransportOptions = {
+            ...smtpConfig,
+        };
+
+        if (validatedInput.fromAccount === 'get-that-cruise') {
+            (transporterOptions as any).tls = { rejectUnauthorized: false };
+        }
+
+        const transporter = nodemailer.createTransport(transporterOptions);
         
         const htmlBody = validatedInput.emailBody
           .replace(/__\*\*(.*?)\*\*__/g, '<u><b>$1</b></u>') // bold and underline for price
