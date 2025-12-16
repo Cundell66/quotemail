@@ -10,7 +10,7 @@
 
 import {ai} from '@/ai/genkit';
 import { GenerateEmailContentInputSchema, GenerateEmailContentOutputSchema, type GenerateEmailContentInput, type GenerateEmailContentOutput } from "@/lib/schemas";
-import { addDays, differenceInMonths, startOfToday, subWeeks, parse } from 'date-fns';
+import { addDays, differenceInMonths, startOfToday, subWeeks, parse, isBefore } from 'date-fns';
 
 
 function generateEmailTemplate(input: GenerateEmailContentInput): string {
@@ -19,10 +19,15 @@ function generateEmailTemplate(input: GenerateEmailContentInput): string {
     guestsLine += ` and ${input.children} Children`;
   }
 
+  let anySailingHasMonthlyPayments = false;
+
   const sailingsText = input.sailings.map(sailing => {
       const cruiseDateObj = parse(sailing.cruiseDate, "PPP", new Date());
+      const fourteenWeeksFromToday = addDays(startOfToday(), 14 * 7);
+      const isLessThan14Weeks = isBefore(cruiseDateObj, fourteenWeeksFromToday);
+
       const paymentStartDate = addDays(startOfToday(), 14);
-      const paymentCutoffDate = subWeeks(cruiseDateObj, 6);
+      const paymentCutoffDate = subWeeks(cruiseDateObj, 14);
 
       const optionsText = sailing.options.map(option => {
         const discountedPrice = option.mscBookPrice - (option.mscBookPrice * (input.discountPercentage / 100));
@@ -31,11 +36,12 @@ function generateEmailTemplate(input: GenerateEmailContentInput): string {
         const balance = price - input.deposit;
         
         let monthlyPaymentText = '';
-        if (paymentCutoffDate > paymentStartDate) {
+        if (!isLessThan14Weeks && paymentCutoffDate > paymentStartDate) {
           const monthsBetween = differenceInMonths(paymentCutoffDate, paymentStartDate);
           if (monthsBetween > 0 && balance > 0) {
             const monthlyPayment = Math.ceil(balance / monthsBetween);
             monthlyPaymentText = `${monthsBetween} monthly payments of £${monthlyPayment.toLocaleString('en-GB')} per month by direct debit`;
+            anySailingHasMonthlyPayments = true;
           }
         }
         
@@ -46,13 +52,19 @@ function generateEmailTemplate(input: GenerateEmailContentInput): string {
         return `${optionDetails}${paymentDetails}`;
       }).join('\n\n');
 
-      const sailingFooter = `Total deposit for this cruise is £${input.deposit.toLocaleString('en-GB')} with the remaining balance being due by ${sailing.dueDate}`;
+      let sailingFooter = '';
+      if (isLessThan14Weeks) {
+        sailingFooter = 'Full amount is due at time of booking as sailing is less than 14 weeks away.';
+      } else {
+        sailingFooter = `Total deposit for this cruise is £${input.deposit.toLocaleString('en-GB')} with the remaining balance being due by ${sailing.dueDate}`;
+      }
       
       return `${sailing.shipName}\n${sailing.cruiseDate} - ${sailing.nights} Nights - ${sailing.cruiseName}\n\n${optionsText}\n\n${sailingFooter}`;
   }).join('\n\n----------------------------------------\n\n');
 
 
   let voyagerLine = input.voyagerMember ? 'Voyager Club Discount included\n' : '';
+  const monthlyPaymentDisclaimer = anySailingHasMonthlyPayments ? `\n\n*Monthly payment amounts are estimates based on assumed information. Full breakdown available on request.*` : '';
 
   const emailBody = `Hi ${input.customerName},
 
@@ -61,12 +73,7 @@ Thanks for your Quote Request, I've provided some pricing and info below for you
 ${guestsLine}
 ${input.drinksPackage}
 ${voyagerLine}
-${sailingsText}
-
-If you would like to go ahead and book this cruise, please just reply to this email with your option choice and I'll start searching for the perfect cabin for you.
-
-*Monthly payment amounts are estimates based on assumed information. Full breakdown available on request.*
-`;
+${sailingsText}${monthlyPaymentDisclaimer}`;
 
   // Combine plain text body with HTML signature, separating them for the mailer
   // Use a unique separator that's unlikely to be in the content
