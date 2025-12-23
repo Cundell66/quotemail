@@ -16,7 +16,8 @@ import { addDays, differenceInMonths, startOfToday, subWeeks, parse, isBefore } 
 function generateEmailTemplate(input: GenerateEmailContentInput): string {
   let guestsLine = `${input.adults} Adults`;
   if (input.children > 0) {
-    guestsLine += ` and ${input.children} Children`;
+    const childText = input.children === 1 ? 'Child' : 'Children';
+    guestsLine += ` and ${input.children} ${childText}`;
   }
 
   let anySailingHasMonthlyPayments = false;
