@@ -43,7 +43,7 @@ type CruiseEmailFormProps = {
   isLoading: boolean;
 };
 
-const shipNames = ["MSC Virtuosa", "MSC Poesia", "MSC Preziosa", "MSC Meraviglia"];
+const shipNames = ["MSC Armonia","MSC Bellissima","MSC Divina","MSC Euribia","MSC Fantasia","MSC Grandiosa","MSC Lirica","MSC Magnifica","MSC Meraviglia","MSC Musica","MSC Opera","MSC Orchestra", "MSC Poesia", "MSC Preziosa", "MSC Seascape","MSC Seashore","MSC Seaside","MSC Seaview","MSC Sinfonia","MSC Splendida","MSC Virtuosa","MSC World America","MSC World Asia","MSC World Atlantic","MSC World Europa"];
 const experienceTypes = ["Bella", "Fantastica", "Aurea", "Yacht Club"];
 const cabinTypes = ["Interior", "Ocean View", "Balcony", "Suite"];
 
