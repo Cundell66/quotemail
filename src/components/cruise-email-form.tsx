@@ -109,8 +109,8 @@ export function CruiseEmailForm({ form, onSubmit, isLoading }: CruiseEmailFormPr
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="get-that-cruise">Get That Cruise</SelectItem>
                       <SelectItem value="cruise-aboard">Cruise Aboard</SelectItem>
+                      <SelectItem value="get-that-cruise">Get That Cruise</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />
