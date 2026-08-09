@@ -103,7 +103,7 @@ All prices above are per cabin — for the whole family, not per person.
 
 ${urgencyText}
 
-You're in safe hands — Get That Cruise is an agent for Bradley Travelstore, ATOL 11753, so your money is fully protected from day one.
+You're in safe hands — Get That Cruise is an agent for Bradley Travelstore, ATOL 11753, so your money is fully protected from day one. And if you receive a more attractive like-for-like quote elsewhere, I'd genuinely welcome the chance to review it and, where possible, match it.
 
 To book, just reply to this email and say "BOOK IT" — I'll confirm everything and send your invoice over. Prefer to talk it through first? Reply and I'll call you at a time that suits.
 
