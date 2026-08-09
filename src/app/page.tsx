@@ -112,7 +112,21 @@ export default function Home() {
     setEmailSignature("");
     setLastGeneratedData(null);
     try {
-      const response = await generateEmailAction(values);
+      // Normalise dates to UTC midnight before they cross to the server.
+      // The picker stores local midnight (e.g. 22 Oct 00:00 BST = 21 Oct 23:00 UTC),
+      // and the server formats in UTC — without this, dates render a day early.
+      const toUtcMidnight = (d: Date): Date =>
+        new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+      const normalizedValues: CruiseFormData = {
+        ...values,
+        dueDate: values.dueDate ? toUtcMidnight(values.dueDate) : null,
+        sailings: values.sailings.map(s => ({
+          ...s,
+          cruiseDate: toUtcMidnight(s.cruiseDate),
+        })),
+      };
+
+      const response = await generateEmailAction(normalizedValues);
 
       if (response.success && response.data) {
         const [body, signature] = response.data.body.split('\n\n---SIGNATURE_SEPARATOR---\n\n');
