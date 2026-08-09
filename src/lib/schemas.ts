@@ -64,5 +64,8 @@ export const GenerateEmailContentInputSchema = z.object({
 });
 export type GenerateEmailContentInput = z.infer<typeof GenerateEmailContentInputSchema>;
 
-export const GenerateEmailContentOutputSchema = z.string();
+export const GenerateEmailContentOutputSchema = z.object({
+  subject: z.string().describe('The subject line for the email.'),
+  body: z.string().describe('The email body, including the ---SIGNATURE_SEPARATOR--- marker and signature.'),
+});
 export type GenerateEmailContentOutput = z.infer<typeof GenerateEmailContentOutputSchema>;

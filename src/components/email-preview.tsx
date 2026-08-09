@@ -20,29 +20,36 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Textarea } from "./ui/textarea";
+import { Input } from "./ui/input";
 
 type EmailPreviewProps = {
   emailBody: string;
+  emailSubject: string;
   emailSignature: string;
   isLoading: boolean;
   isSending: boolean;
-  onSend: (editedBody: string) => void;
+  onSend: (editedSubject: string, editedBody: string) => void;
 };
 
-export function EmailPreview({ emailBody, emailSignature, isLoading, isSending, onSend }: EmailPreviewProps) {
+export function EmailPreview({ emailBody, emailSubject, emailSignature, isLoading, isSending, onSend }: EmailPreviewProps) {
   const [isCopied, setIsCopied] = React.useState(false);
   const [editedBody, setEditedBody] = React.useState(emailBody);
+  const [editedSubject, setEditedSubject] = React.useState(emailSubject);
   const { toast } = useToast();
 
   React.useEffect(() => {
     setEditedBody(emailBody);
   }, [emailBody]);
 
+  React.useEffect(() => {
+    setEditedSubject(emailSubject);
+  }, [emailSubject]);
+
   const handleCopy = async () => {
     if (!editedBody) return;
     try {
       const plainTextSignature = emailSignature ? emailSignature.replace(/<[^>]*>?/gm, '') : '';
-      const textToCopy = `${editedBody}\n\n${plainTextSignature}`;
+      const textToCopy = `Subject: ${editedSubject}\n\n${editedBody}\n\n${plainTextSignature}`;
 
       await navigator.clipboard.writeText(textToCopy);
       setIsCopied(true);
@@ -107,14 +114,24 @@ export function EmailPreview({ emailBody, emailSignature, isLoading, isSending, 
               <Skeleton className="h-4 w-5/6" />
             </div>
           ) : hasContent ? (
-            <>
+            <div className="space-y-3">
+              <div>
+                <label className="text-xs font-medium text-muted-foreground">Subject</label>
+                <Input
+                  value={editedSubject}
+                  onChange={(e) => setEditedSubject(e.target.value)}
+                  className="w-full mt-1 font-sans text-sm text-foreground"
+                  placeholder="Email subject..."
+                  disabled={isLoading}
+                />
+              </div>
               <Textarea
                 value={editedBody}
                 onChange={(e) => setEditedBody(e.target.value)}
                 className="w-full h-full min-h-[250px] bg-transparent border-0 focus-visible:ring-0 resize-none font-sans text-sm text-foreground"
                 placeholder="Email content will appear here..."
               />
-            </>
+            </div>
           ) : (
             <div className="whitespace-pre-wrap font-sans text-sm text-foreground">
               Fill out the form to see the generated email...
@@ -129,7 +146,7 @@ export function EmailPreview({ emailBody, emailSignature, isLoading, isSending, 
       </CardContent>
        <CardFooter>
         <Button 
-          onClick={() => onSend(editedBody)} 
+          onClick={() => onSend(editedSubject, editedBody)} 
           disabled={!hasContent || isSending || isLoading} 
           className="w-full"
         >

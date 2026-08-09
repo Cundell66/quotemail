@@ -40,6 +40,7 @@ const getDefaultFormValues = (): CruiseFormData => ({
 
 export default function Home() {
   const [emailBody, setEmailBody] = React.useState("");
+  const [emailSubject, setEmailSubject] = React.useState("");
   const [emailSignature, setEmailSignature] = React.useState("");
   const [isGenerating, setIsGenerating] = React.useState(false);
   const [isSending, setIsSending] = React.useState(false);
@@ -107,14 +108,16 @@ export default function Home() {
   const handleGenerate = async (values: CruiseFormData) => {
     setIsGenerating(true);
     setEmailBody("");
+    setEmailSubject("");
     setEmailSignature("");
     setLastGeneratedData(null);
     try {
       const response = await generateEmailAction(values);
 
       if (response.success && response.data) {
-        const [body, signature] = response.data.split('\n\n---SIGNATURE_SEPARATOR---\n\n');
+        const [body, signature] = response.data.body.split('\n\n---SIGNATURE_SEPARATOR---\n\n');
         setEmailBody(body);
+        setEmailSubject(response.data.subject || "");
         setEmailSignature(signature || "");
         setLastGeneratedData(values);
         toast({
@@ -139,7 +142,7 @@ export default function Home() {
     }
   };
 
-  const handleSend = async (editedBody: string) => {
+  const handleSend = async (editedSubject: string, editedBody: string) => {
     if (!editedBody || !lastGeneratedData) {
       toast({
         variant: "destructive",
@@ -156,6 +159,7 @@ export default function Home() {
         fromAccount: lastGeneratedData.fromAccount,
         emailBody: editedBody,
         signature: emailSignature,
+        subject: editedSubject,
       });
 
       if (response.success) {
@@ -197,6 +201,7 @@ export default function Home() {
       dueDate: subWeeks(addDays(startOfToday(), 15), 14)
     });
     setEmailBody("");
+    setEmailSubject("");
     setEmailSignature("");
     setLastGeneratedData(null);
     toast({
@@ -232,6 +237,7 @@ export default function Home() {
           </Card>
           <EmailPreview 
             emailBody={emailBody} 
+            emailSubject={emailSubject}
             emailSignature={emailSignature}
             isLoading={isGenerating}
             isSending={isSending}

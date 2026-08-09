@@ -110,6 +110,7 @@ const sendEmailSchema = z.object({
     fromAccount: z.string(),
     emailBody: z.string(),
     signature: z.string(),
+    subject: z.string(),
 });
 
 export async function sendEmailAction(input: z.infer<typeof sendEmailSchema>) {
@@ -137,7 +138,7 @@ export async function sendEmailAction(input: z.infer<typeof sendEmailSchema>) {
             from: `"${smtpConfig.senderName}" <${smtpConfig.auth.user}>`,
             to: validatedInput.customerEmail,
             bcc: smtpConfig.auth.user,
-            subject: `Your Cruise Quote from ${smtpConfig.senderName}`,
+            subject: validatedInput.subject || `Your Cruise Quote from ${smtpConfig.senderName}`,
             html: `${htmlBody}<br /><br />${signatureHtml}`,
             text: `${validatedInput.emailBody}\n\n${signatureHtml.replace(/<[^>]*>?/gm, '')}`,
         };
