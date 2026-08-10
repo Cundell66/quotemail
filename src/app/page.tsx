@@ -102,7 +102,7 @@ const getDefaultFormValues = (): CruiseFormData => ({
   children: 0,
   drinksPackage: false,
   voyagerMember: false,
-  discountPercentage: 8.5,
+  discountPercentage: 4.5,
   deposit: 0,
   dueDate: null, // Initially null
   sailings: [{
@@ -112,7 +112,7 @@ const getDefaultFormValues = (): CruiseFormData => ({
     cruiseName: "",
     options: [{ experienceType: "", cabinType: "", decks: "", mscBookPrice: 0 }],
   }],
-  hideMscPrice: false,
+  hideMscPrice: true,
 });
 
 
