@@ -4,7 +4,7 @@ import * as React from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import type { z } from "zod";
-import { addDays, startOfToday, subWeeks } from "date-fns";
+import { addDays, differenceInMonths, format, startOfToday, subWeeks } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { cruiseEmailSchema } from "@/lib/schemas";
 import { generateEmailAction, sendEmailAction } from "@/lib/actions";
@@ -15,6 +15,84 @@ import { Button } from "@/components/ui/button";
 import { FilePlus2 } from "lucide-react";
 
 type CruiseFormData = z.infer<typeof cruiseEmailSchema>;
+
+// Follow-up tracker webhook (n8n → Google Sheet "GTC Cruise Follow-Ups")
+const FOLLOW_UP_WEBHOOK_URL =
+  process.env.NEXT_PUBLIC_QUOTE_WEBHOOK_URL ||
+  "https://n8n.cundell.com/webhook/gtc-quote-log";
+
+function getDiscountedPrice(mscBookPrice: number, discountPercentage: number): number {
+  const discountedPrice = mscBookPrice - (mscBookPrice * (discountPercentage / 100));
+  return Math.floor(discountedPrice / 10) * 10 + 9;
+}
+
+function fmtDate(d: Date | null): string {
+  return d ? format(d, "yyyy-MM-dd") : "";
+}
+
+async function logQuoteToFollowUpSheet(data: CruiseFormData) {
+  if (data.fromAccount !== "get-that-cruise") return; // only GTC quotes get tracked
+
+  const today = startOfToday();
+  const firstSailing = data.sailings[0];
+
+  // Cheapest discounted price across all sailings/options (matches email template logic)
+  let cheapest: number | null = null;
+  for (const s of data.sailings) {
+    for (const o of s.options) {
+      const p = getDiscountedPrice(o.mscBookPrice, data.discountPercentage);
+      if (cheapest === null || p < cheapest) cheapest = p;
+    }
+  }
+
+  // Monthly payments text (matches email template logic)
+  let monthlyText = "";
+  if (firstSailing?.cruiseDate && cheapest !== null && data.deposit > 0) {
+    const cruiseDate = new Date(firstSailing.cruiseDate);
+    const fourteenWeeksFromToday = addDays(today, 14 * 7);
+    if (cruiseDate >= fourteenWeeksFromToday) {
+      const paymentStartDate = addDays(today, 14);
+      const paymentCutoffDate = subWeeks(cruiseDate, 14);
+      if (paymentCutoffDate > paymentStartDate) {
+        const monthsBetween = differenceInMonths(paymentCutoffDate, paymentStartDate);
+        const balance = cheapest - data.deposit;
+        if (monthsBetween > 0 && balance > 0) {
+          const monthlyPayment = Math.ceil(balance / monthsBetween);
+          monthlyText = `${monthsBetween} monthly payments of \u00a3${monthlyPayment.toLocaleString("en-GB")} per month by direct debit`;
+        }
+      }
+    }
+  }
+
+  const guests = `${data.adults} Adults${data.children > 0 ? ` and ${data.children} ${data.children === 1 ? "Child" : "Children"}` : ""}`;
+
+  const payload = {
+    customerName: data.customerName,
+    customerEmail: data.customerEmail,
+    ship: firstSailing?.shipName || "",
+    cruiseDate: fmtDate(firstSailing?.cruiseDate ? new Date(firstSailing.cruiseDate) : null),
+    nights: firstSailing?.nights || 0,
+    cruiseName: firstSailing?.cruiseName || "",
+    pricePerCabin: cheapest ?? "",
+    deposit: data.deposit || 0,
+    balanceDueDate: fmtDate(data.dueDate ? new Date(data.dueDate) : null),
+    monthlyPayments: monthlyText,
+    guests,
+    drinksPackage: data.drinksPackage ? "Yes" : "No",
+    voyagerMember: data.voyagerMember ? "Yes" : "No",
+    childAges: "",
+    followUp1Date: fmtDate(addDays(today, 2)),
+    followUp2Date: fmtDate(addDays(today, 7)),
+    status: "awaiting",
+    quoteSentDate: fmtDate(today),
+  };
+
+  await fetch(FOLLOW_UP_WEBHOOK_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+}
 
 const getDefaultFormValues = (): CruiseFormData => ({
   customerName: "",
@@ -180,6 +258,10 @@ export default function Home() {
         toast({
           title: "Email Sent Successfully!",
           description: `Quote sent to ${lastGeneratedData.customerEmail}.`,
+        });
+        // Fire-and-forget: log the quote to the n8n follow-up tracker sheet (GTC only)
+        logQuoteToFollowUpSheet(lastGeneratedData).catch(() => {
+          console.error("Failed to log quote to follow-up tracker");
         });
       } else {
         toast({
